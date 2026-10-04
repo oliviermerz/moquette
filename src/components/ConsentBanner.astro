@@ -1,0 +1,39 @@
+---
+/* Bandeau de consentement : refuser est aussi simple qu'accepter (recommandations CNIL).
+   Aucun outil de mesure n'est chargé avant un consentement explicite. */
+---
+<div class="cb" data-consent-banner hidden role="dialog" aria-modal="false" aria-labelledby="cb-title">
+  <div class="cb__in">
+    <p id="cb-title" class="cb__title">Vos préférences</p>
+    <p class="cb__text">
+      Avec votre accord, nous mesurons l'audience du site et l'efficacité de nos publicités. Vous pouvez changer d'avis à tout moment depuis « Gestion des cookies », en bas de page.
+      <a href="/confidentialite/">En savoir plus</a>
+    </p>
+    <div class="cb__details" data-consent-details hidden>
+      <label class="cb__opt"><input type="checkbox" data-consent-analytics /> <span><b>Mesure d'audience</b> : comprendre quelles pages sont utiles (Google Analytics).</span></label>
+      <label class="cb__opt"><input type="checkbox" data-consent-ads /> <span><b>Publicité</b> : mesurer l'efficacité de nos annonces Google et Meta.</span></label>
+    </div>
+    <div class="cb__actions">
+      <button type="button" class="btn btn--outline" data-consent="refuse">Tout refuser</button>
+      <button type="button" class="btn btn--outline" data-consent="customize">Personnaliser</button>
+      <button type="button" class="btn btn--outline" data-consent="save" hidden>Enregistrer</button>
+      <button type="button" class="btn btn--outline cb__accept" data-consent="accept">Tout accepter</button>
+    </div>
+  </div>
+</div>
+<style>
+  .cb { position: fixed; z-index: 60; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); max-width: 560px; background: var(--blanc); border: 1px solid var(--line); box-shadow: 0 20px 50px -20px rgba(0,0,0,.35); }
+  @media (min-width: 900px) { .cb { left: 24px; bottom: 24px; } }
+  .cb__in { padding: 22px; display: grid; gap: 14px; }
+  .cb__title { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.15rem; }
+  .cb__text { font-size: 0.9rem; color: var(--pierre); }
+  .cb__text a { color: var(--ocre); }
+  .cb__opt { display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 0.88rem; align-items: start; }
+  .cb__opt input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--ocre); }
+  .cb__details { display: grid; gap: 10px; }
+  .cb__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cb__actions .btn { min-height: 44px; padding: 10px 12px; font-size: 0.7rem; }
+  /* Accepter et refuser ont le même poids visuel */
+  .cb__accept { background: var(--anthracite); color: var(--chaux); border-color: var(--anthracite); }
+  .cb__actions [data-consent='refuse'] { background: var(--anthracite); color: var(--chaux); border-color: var(--anthracite); }
+</style>

@@ -1,0 +1,89 @@
+---
+import Base from '../../layouts/Base.astro';
+import { CtaFinal, FaqList } from '../../components/sections';
+import type { Faq } from '../../data/usages';
+
+const solutions = ['Moquette de pierre', 'Carrelage extérieur', 'Béton décoratif', 'Pavés'];
+const rows: { crit: string; cells: string[] }[] = [
+  { crit: 'Esthétique', cells: ['Minérale et continue, grain de pierre visible', 'Très large choix, y compris imitations bois ou pierre', 'Imprimé, désactivé ou lissé : plus brut', 'Traditionnelle, jeux de calepinage'] },
+  { crit: 'Drainage', cells: ['Perméable dans sa masse ; dépend du support', 'Étanche : la pente évacue l’eau', 'Étanche, sauf bétons drainants spécifiques', 'Joints perméables selon la pose'] },
+  { crit: 'Joints', cells: ['Aucun joint apparent, hors joints de dilatation repris', 'Nombreux joints, qui peuvent s’encrasser', 'Joints de dilatation ou de sciage', 'Nombreux joints, où l’herbe peut pousser'] },
+  { crit: 'Entretien', cells: ['Balayage et nettoyage à l’eau', 'Facile en surface, joints plus exigeants', 'Lavage, imprégnation à renouveler selon finition', 'Désherbage et regarnissage des joints'] },
+  { crit: 'Rénovation sur l’existant', cells: ['Souvent possible sur support sain', 'Possible sur ancien carrelage sain, avec surélévation', 'Rarement : en général une nouvelle dalle', 'Non : terrassement nécessaire'] },
+  { crit: 'Rapidité', cells: ['Rapide si le support est compatible', 'Moyenne : pose, joints, séchage', 'Coulage rapide, mais coffrage et temps de cure', 'Plus long : terrassement et lit de pose'] },
+  { crit: 'Personnalisation', cells: ['Mélanges de granulats, motifs par séparation', 'Formats, couleurs et textures très variés', 'Teintes et matrices d’impression', 'Formats, couleurs, appareillages'] },
+  { crit: 'Durabilité', cells: ['Dépend de la résine (UV) et de la pose', 'Bonne si carrelage adapté au gel', 'Très bonne ; fissures possibles', 'Très bonne ; réparable élément par élément'] },
+  { crit: 'Budget', cells: ['Variable selon support et préparation', 'Variable selon le carrelage choisi', 'Variable selon finition et terrassement', 'Variable selon terrassement et pavés'] },
+];
+const choose = [
+  { s: 'Moquette de pierre', t: "Vous voulez un rendu minéral continu, rénover sans démolir un support sain, ou une plage de piscine agréable pieds nus." },
+  { s: 'Carrelage extérieur', t: 'Vous cherchez un aspect très précis (imitation bois, grands formats) et une surface parfaitement lisse.' },
+  { s: 'Béton décoratif', t: 'Vous créez une grande surface neuve, carrossable, avec un budget maîtrisé et un aspect plus brut.' },
+  { s: 'Pavés', t: 'Vous aimez le charme traditionnel, voulez pouvoir remplacer un élément, et partez d’un sol à terrasser.' },
+];
+const faq: Faq[] = [
+  { q: 'Moquette de pierre ou carrelage : lequel choisir pour une terrasse ?', a: "Si votre carrelage actuel est sain, la moquette de pierre permet de le transformer sans le déposer et supprime les joints. Si vous cherchez un aspect très précis comme une imitation bois, le carrelage offre plus de choix." },
+  { q: 'Moquette de pierre ou béton désactivé ?', a: "Le béton désactivé convient bien aux grandes surfaces neuves et carrossables. La moquette de pierre se pose souvent sur l'existant et offre un grain plus fin et plus de couleurs." },
+  { q: 'Quelle solution est la moins chère ?', a: "Il n'y a pas de réponse générale : le coût dépend surtout de l'état du sol actuel. Recouvrir un support sain évite démolition et évacuation ; partir de la terre impose un terrassement, quelle que soit la solution." },
+];
+---
+<Base
+  title="Moquette de pierre, carrelage, béton ou pavés ?"
+  description="Comparatif objectif des sols extérieurs : moquette de pierre, carrelage, béton décoratif et pavés. Esthétique, drainage, entretien, rénovation, budget."
+  crumbs={[{ name: 'Moquette de pierre', href: '/moquette-de-pierre/' }, { name: 'Comparatif', href: '/moquette-de-pierre/comparatif/' }]}
+  faq={faq}
+  schema={[{ '@type': 'Article', headline: 'Moquette de pierre, carrelage, béton décoratif ou pavés : le comparatif', inLanguage: 'fr-FR', author: { '@type': 'Organization', name: 'STRATE' } }]}
+>
+  <section class="section section--tight">
+    <div class="container stack" style="--stack: 22px">
+      <span class="kicker">Comparatif</span>
+      <h1 class="h1" style="max-width: 20ch">Moquette de pierre, carrelage, béton ou pavés ?</h1>
+      <p class="lead muted">Chaque solution a ses qualités. Ce comparatif vous aide à choisir celle qui correspond à votre extérieur, même si ce n'est pas la nôtre.</p>
+    </div>
+  </section>
+
+  <section class="section section--flush-top">
+    <div class="container">
+      <div class="cmp-wrap" tabindex="0" role="region" aria-label="Tableau comparatif, défilable horizontalement">
+        <table class="cmp">
+          <caption class="sr-only">Comparatif de quatre revêtements de sol extérieurs selon neuf critères</caption>
+          <thead><tr><th scope="col">Critère</th>{solutions.map((s, i) => <th scope="col" class:list={{ us: i === 0 }}>{s}</th>)}</tr></thead>
+          <tbody>
+            {rows.map((r) => <tr><th scope="row">{r.crit}</th>{r.cells.map((c, i) => <td class:list={{ us: i === 0 }}>{c}</td>)}</tr>)}
+          </tbody>
+        </table>
+      </div>
+      <p class="mono muted note">Comparaison générale. Les performances réelles dépendent des produits choisis, du support et de la qualité de pose.</p>
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head"><span class="kicker">En résumé</span><h2 class="h2">Quand choisir quoi ?</h2></div>
+      <ul class="grid-cards choose" role="list">
+        {choose.map((c) => <li><h3 class="h3">{c.s}</h3><p class="muted">{c.t}</p></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid-2 faq-grid">
+      <div class="section-head"><span class="kicker">Questions fréquentes</span><h2 class="h2">Bien choisir son sol extérieur.</h2></div>
+      <FaqList items={faq} />
+    </div>
+  </section>
+
+  <CtaFinal title="Pas sûr de la bonne solution ? Parlons-en." text="Décrivez votre projet : si la moquette de pierre n'est pas adaptée à votre support, nous vous le dirons." placement="comparatif-cta-final" />
+</Base>
+<style>
+  .cmp-wrap { overflow-x: auto; border-top: 1px solid var(--anthracite); }
+  .cmp { border-collapse: collapse; width: 100%; min-width: 820px; font-size: 0.92rem; }
+  .cmp th, .cmp td { text-align: left; vertical-align: top; padding: 16px 14px; border-bottom: 1px solid var(--line); }
+  .cmp thead th { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1rem; }
+  .cmp tbody th { font-family: var(--font-mono); font-weight: 500; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pierre); width: 15%; }
+  .cmp .us { background: var(--blanc); }
+  .note { margin-top: 16px; font-size: 0.74rem; }
+  .choose li { display: grid; gap: 10px; align-content: start; }
+  @media (min-width: 1040px) { .choose { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .faq-grid { align-items: start; }
+</style>

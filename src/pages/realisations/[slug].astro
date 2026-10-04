@@ -1,0 +1,155 @@
+---
+/* Étude de cas : avant, problème, solution, chiffres, étapes, après, témoignage. */
+import { render } from 'astro:content';
+import { Picture, getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import CaseCard from '../../components/CaseCard.astro';
+import { CtaFinal } from '../../components/sections';
+import { ESTIMATE_URL } from '../../config/site';
+import { LABELS } from '../../config/pricing';
+import { usages } from '../../data/usages';
+import { getRealisations, getVilleStatuses, realisationUrl, villeUrl, type Realisation } from '../../lib/proof';
+
+export async function getStaticPaths() {
+  return (await getRealisations()).map((r) => ({ params: { slug: r.id }, props: { r } }));
+}
+
+interface Props { r: Realisation }
+const { r } = Astro.props;
+const d = r.data;
+const { Content } = await render(r);
+const size = d.usage === 'escalier' ? `${d.marches} marches` : `${d.surface} m²`;
+const usagePage = usages.find((u) => u.slug.includes(d.usage) || (d.usage === 'terrasse' && u.slug === 'terrasse-moquette-de-pierre'));
+const villeOk = d.zone ? (await getVilleStatuses()).find((s) => s.ville.id === d.zone!.id && s.indexable) : undefined;
+const others = (await getRealisations()).filter((x) => x.id !== r.id && x.data.usage === d.usage).slice(0, 3);
+const fmt = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
+const ogImage = await getImage({ src: d.apres, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const facts: [string, string][] = [
+  ['Lieu', `${d.ville} (${d.codePostal.slice(0, 2)})`],
+  [d.usage === 'escalier' ? 'Marches' : 'Surface', size],
+  ['Support d’origine', LABELS.support[d.support]],
+  ['Finition', d.finition],
+  ['Durée du chantier', `${d.dureeJours} jour${d.dureeJours > 1 ? 's' : ''}`],
+  ['Réception', fmt.format(d.date)],
+];
+const article = {
+  '@type': 'Article',
+  headline: d.title,
+  datePublished: d.date.toISOString().slice(0, 10),
+  image: new URL(ogImage.src, Astro.site).href,
+  inLanguage: 'fr-FR',
+  author: { '@id': `${Astro.site?.origin ?? ''}/#organization` },
+  about: { '@type': 'Service', serviceType: `Moquette de pierre : ${LABELS.espace[d.usage].toLowerCase()}`, areaServed: { '@type': 'City', name: d.ville } },
+};
+---
+<Base
+  title={`${d.title}`}
+  description={`${LABELS.espace[d.usage]} de ${size} à ${d.ville} en pierre naturelle résinée, finition ${d.finition}. Avant/après, étapes du chantier et durée réelle : ${d.dureeJours} jours.`}
+  crumbs={[{ name: 'Réalisations', href: '/realisations/' }, { name: d.title, href: realisationUrl(r) }]}
+  schema={[article]}
+  ogImage={ogImage.src}
+>
+  <article>
+    <header class="section section--tight">
+      <div class="container stack" style="--stack: 20px; max-width: 900px">
+        <span class="kicker">{LABELS.espace[d.usage]} · {d.ville}</span>
+        <h1 class="h1">{d.title}</h1>
+      </div>
+    </header>
+
+    <section class="section section--flush-top">
+      <div class="container stack" style="--stack: 24px">
+        <BeforeAfter alt={d.title} beforeSrc={d.avant} afterSrc={d.apres} />
+        <dl class="facts">{facts.map(([k, v]) => <div><dt class="kicker">{k}</dt><dd>{v}</dd></div>)}</dl>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container grid-2 ps">
+        <div class="stack"><span class="kicker">Avant</span><h2 class="h3">Le problème</h2><p>{d.probleme}</p><p class="muted">État d'origine : {d.etatInitial}.</p></div>
+        <div class="stack"><span class="kicker">Notre réponse</span><h2 class="h3">La solution</h2><p>{d.solution}</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head"><span class="kicker">Le chantier</span><h2 class="h2">Étape par étape.</h2></div>
+        <ol class="steps" role="list">
+          {d.etapes.map((e, i) => (
+            <li class="step">
+              <span class="mono num">{String(i + 1).padStart(2, '0')}</span>
+              <div class="stack" style="--stack: 8px"><h3 class="h3">{e.titre}</h3><p class="muted">{e.texte}</p></div>
+              {e.photo && <Picture src={e.photo} alt={e.alt ?? e.titre} formats={['avif', 'webp']} widths={[400, 800]} sizes="(min-width: 900px) 30vw, 100vw" class="step__img" />}
+            </li>
+          ))}
+        </ol>
+        <div class="prose body"><Content /></div>
+      </div>
+    </section>
+
+    <section class="section section--flush-top">
+      <div class="container stack" style="--stack: 16px">
+        <span class="kicker">Après</span>
+        <Picture src={d.apres} alt={d.apresAlt} formats={['avif', 'webp']} widths={[800, 1400, 2000]} sizes="100vw" class="hero-after" />
+        {d.photos.length > 0 && (
+          <div class="photos">{d.photos.map((p) => <Picture src={p.src} alt={p.alt} formats={['avif', 'webp']} widths={[500, 900]} sizes="(min-width: 800px) 33vw, 100vw" />)}</div>
+        )}
+      </div>
+    </section>
+
+    {d.temoignage && (
+      <section class="section section--dark">
+        <div class="container">
+          <blockquote class="quote">
+            <p>« {d.temoignage.texte} »</p>
+            <footer class="mono">{d.temoignage.prenom} · {d.ville}{d.avisGoogleUrl && <> · <a href={d.avisGoogleUrl} rel="noopener">Voir son avis sur Google</a></>}</footer>
+          </blockquote>
+        </div>
+      </section>
+    )}
+
+    <section class="section">
+      <div class="container stack" style="--stack: 24px">
+        <div class="btn-row" data-placement="etude-de-cas">
+          <a class="btn btn--primary" href={`${ESTIMATE_URL}?espace=${d.usage}`} data-cta="transformer">Je veux transformer mon extérieur <span class="arrow" aria-hidden="true">→</span></a>
+          {usagePage && <a class="btn btn--link" href={`/${usagePage.slug}/`}>Tout savoir : {usagePage.label.toLowerCase()}</a>}
+          {villeOk && <a class="btn btn--link" href={villeUrl(villeOk.ville)}>Nos réalisations à {villeOk.ville.data.name}</a>}
+        </div>
+      </div>
+    </section>
+  </article>
+
+  {others.length > 0 && (
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-head"><span class="kicker">Autres réalisations</span><h2 class="h2">Dans le même esprit.</h2></div>
+        <div class="others">{others.map((x) => <CaseCard r={x} />)}</div>
+      </div>
+    </section>
+  )}
+  <CtaFinal placement="etude-cta-final" />
+</Base>
+<style>
+  .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--anthracite); }
+  @media (min-width: 900px) { .facts { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  .facts div { padding: 14px 12px 14px 0; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+  .facts dd { margin: 0; font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.05rem; }
+  .ps { align-items: start; }
+  .steps { display: grid; border-top: 1px solid var(--anthracite); }
+  .step { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px 16px; padding-block: 24px; border-bottom: 1px solid var(--line); }
+  @media (min-width: 900px) { .step { grid-template-columns: 64px minmax(0, 1fr) minmax(0, 0.8fr); align-items: start; } }
+  .step .num { color: var(--ocre); padding-top: 4px; }
+  .step :global(.step__img) { grid-column: 2; width: 100%; height: auto; }
+  @media (min-width: 900px) { .step :global(.step__img) { grid-column: 3; } }
+  .body { margin-top: 32px; }
+  :global(.hero-after) { width: 100%; height: auto; }
+  .photos { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+  .photos :global(img) { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 4 / 3; }
+  .quote { margin: 0; max-width: 900px; display: grid; gap: 16px; }
+  .quote p { font-family: var(--font-display); font-stretch: 110%; font-size: clamp(1.4rem, 1.1rem + 1.5vw, 2.4rem); line-height: 1.2; }
+  .quote footer { color: var(--muted-on-dark); text-transform: uppercase; font-size: 0.74rem; letter-spacing: 0.08em; }
+  .quote a { color: var(--ocre-clair); }
+  .others { display: grid; gap: 24px; }
+  @media (min-width: 800px) { .others { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>

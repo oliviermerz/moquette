@@ -1,0 +1,40 @@
+---
+/* Schéma en coupe : granulats / résine / primaire / support. */
+import Visual from './Visual.astro';
+import { finishPhotos, photos } from '../data/photos';
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+const layers = [
+  { name: 'Granulats naturels', text: 'Marbre ou pierre naturelle. La couleur, la texture, le confort sous le pied.' },
+  { name: 'Résine haute performance', text: 'Elle enrobe et lie chaque grain. Sa qualité conditionne la tenue dans le temps.' },
+  { name: 'Primaire / couche technique', text: "Choisie selon le support, après diagnostic. C'est elle qui assure l'adhérence." },
+  { name: 'Support existant', text: 'Béton, carrelage, dallage… lorsqu’il est sain et stable. Sinon, il est préparé ou créé.' },
+];
+---
+<div class:list={['coupe', { 'coupe--compact': compact }]}>
+  <div class="coupe__visual" role="img" aria-label="Coupe d'un sol en pierre naturelle résinée, de la surface au support">
+    <div class="l l--gran"><Visual src={finishPhotos.beige.src} alt="" fill sizes="(min-width: 900px) 55vw, 100vw" /></div>
+    <div class="l l--resine"></div>
+    <div class="l l--primaire"></div>
+    <div class="l l--support"><Visual src={photos.renovationFissures.src} alt="" fill sizes="(min-width: 900px) 55vw, 100vw" /></div>
+  </div>
+  <ol class="coupe__legend" role="list">
+    {layers.map((l, i) => (
+      <li><span class="mono">{String(i + 1).padStart(2, '0')}</span><div><b>{l.name}</b><p class="muted">{l.text}</p></div></li>
+    ))}
+  </ol>
+</div>
+<style>
+  .coupe { display: grid; gap: clamp(24px, 4vw, 56px); }
+  @media (min-width: 900px) { .coupe { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: stretch; } }
+  .coupe__visual { display: grid; grid-template-rows: 1.3fr 14px 8px 1fr; min-height: 260px; }
+  .l { position: relative; overflow: hidden; }
+  .l--resine { background: linear-gradient(180deg, #B0874F, #8C6634); }
+  .l--primaire { background: #5D5A52; }
+  .coupe__legend { display: grid; gap: 0; align-content: space-between; }
+  .coupe__legend li { display: grid; grid-template-columns: 40px 1fr; gap: 8px; padding-block: 14px; border-top: 1px solid var(--line); }
+  .coupe__legend .mono { color: var(--ocre); padding-top: 3px; }
+  .coupe__legend b { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.05rem; }
+  .coupe__legend p { font-size: 0.94rem; margin-top: 2px; }
+  .coupe--compact .coupe__visual { min-height: 200px; }
+</style>

@@ -1,0 +1,143 @@
+---
+/* Page ville : /moquette-de-pierre-{ville}/. Indexée uniquement quand ses preuves locales sont réunies (voir lib/proof.ts). */
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import BeforeAfter from '../BeforeAfter.astro';
+import CaseCard from '../CaseCard.astro';
+import Reviews from '../Reviews.astro';
+import { FaqList, CtaFinal, UsesGrid } from '../sections';
+import { site, ESTIMATE_URL } from '../../config/site';
+import { LABELS } from '../../config/pricing';
+import { villeUrl, type VilleStatus } from '../../lib/proof';
+import Visual from '../Visual.astro';
+import { villePhotos } from '../../data/photos';
+
+interface Props { status: VilleStatus }
+const { status } = Astro.props;
+const { ville, realisations, avis, indexable } = status;
+const v = ville.data;
+const { Content } = await render(ville);
+const url = villeUrl(ville);
+const photo = villePhotos[ville.id];
+const regionName = site.zones.region;
+const regionUrl = `/zones/${v.region}/`;
+const lead = realisations.find((r) => r.data.featured) ?? realisations[0];
+const temoignages = realisations.filter((r) => r.data.temoignage);
+const service = {
+  '@type': 'Service',
+  name: `Moquette de pierre à ${v.name}`,
+  serviceType: 'Pose de moquette de pierre et rénovation de sols extérieurs',
+  provider: { '@id': `${Astro.site?.origin ?? ''}/#organization` },
+  areaServed: [{ '@type': 'City', name: v.name }, ...v.communes.map((c) => ({ '@type': 'City', name: c }))],
+  url: new URL(url, Astro.site).href,
+};
+---
+<Base
+  title={`Moquette de pierre à ${v.name}`}
+  description={v.metaDescription}
+  crumbs={[{ name: regionName, href: regionUrl }, { name: v.name, href: url }]}
+  faq={v.faq}
+  schema={[service]}
+  noindex={!indexable}
+>
+  <section class="section section--tight">
+    <div class:list={['container', { 'grid-2': !!photo }]}>
+    <div class="stack" style="--stack: 22px; max-width: 900px">
+      <span class="kicker">{v.name} · {v.departement}</span>
+      <h1 class="h1">Moquette de pierre à {v.name}</h1>
+      <p class="lead muted">{v.intro}</p>
+      <div class="btn-row" data-placement="ville-hero">
+        <a class="btn btn--primary" href={`${ESTIMATE_URL}?cp=${v.codePostal}`} data-cta="estimer">Estimer mon projet à {v.name} <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+    {photo && <Visual src={photo.src} alt={photo.alt} ratio="4 / 5" priority sizes="(min-width: 900px) 45vw, 100vw" />}
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Réalisations à {v.name} et alentours</span>
+        <h2 class="h2">{realisations.length ? 'Nos chantiers près de chez vous.' : `Nos premiers chantiers à ${v.name} seront publiés ici.`}</h2>
+        {!realisations.length && <p class="muted">Chaque projet est documenté avant, pendant et après, puis publié avec l'accord du client.</p>}
+      </div>
+      {lead && (
+        <div class="stack" style="--stack: 32px">
+          <BeforeAfter alt={lead.data.title} beforeSrc={lead.data.avant} afterSrc={lead.data.apres} meta={{ type: LABELS.espace[lead.data.usage], lieu: lead.data.ville, surface: lead.data.surface ? `${lead.data.surface} m²` : `${lead.data.marches} marches`, duree: `${lead.data.dureeJours} jours`, support: LABELS.support[lead.data.support] }} />
+          {realisations.length > 1 && <div class="cases">{realisations.filter((r) => r !== lead).slice(0, 3).map((r) => <CaseCard r={r} />)}</div>}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid-2 editorial">
+      <div class="prose ville-prose"><Content /></div>
+      <aside class="stack" style="--stack: 0">
+        <span class="kicker">Ce que nous vérifions à {v.name}</span>
+        <dl class="enjeux">
+          {v.enjeux.map((e) => <div><dt>{e.titre}</dt><dd class="muted">{e.texte}</dd></div>)}
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  {(temoignages.length > 0 || avis.length > 0) && (
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-head"><span class="kicker">Ils nous ont confié leur extérieur</span><h2 class="h2">Avis de clients à {v.name}.</h2></div>
+        {temoignages.map((r) => (
+          <blockquote class="quote">
+            <p>« {r.data.temoignage!.texte} »</p>
+            <footer class="mono">{r.data.temoignage!.prenom} · {r.data.ville}</footer>
+          </blockquote>
+        ))}
+        {avis.length > 0 && <Reviews reviews={avis} />}
+      </div>
+    </section>
+  )}
+
+  {v.communes.length > 0 && (
+    <section class="section section--flush-top">
+      <div class="container">
+        <div class="section-head"><span class="kicker">Zone desservie</span><h2 class="h2">{v.name} et les communes voisines.</h2></div>
+        <ul class="communes" role="list">{[v.name, ...v.communes].map((c) => <li>{c}</li>)}</ul>
+      </div>
+    </section>
+  )}
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head"><span class="kicker">Nos solutions</span><h2 class="h2">Ce que nous transformons à {v.name}.</h2></div>
+      <UsesGrid />
+    </div>
+  </section>
+
+  {v.faq.length > 0 && (
+    <section class="section">
+      <div class="container grid-2 faq-grid">
+        <div class="section-head"><span class="kicker">Questions fréquentes</span><h2 class="h2">Vos questions à {v.name}.</h2></div>
+        <FaqList items={v.faq} />
+      </div>
+    </section>
+  )}
+
+  <CtaFinal title={`Parlons de votre projet à ${v.name}.`} placement="ville-cta-final" />
+</Base>
+<style>
+  .cases { display: grid; gap: 24px; }
+  @media (min-width: 800px) { .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .editorial { align-items: start; }
+  .ville-prose :global(h2) { font-size: var(--fs-h2); margin: 0 0 .3em; }
+  .ville-prose :global(p) { color: var(--anthracite); }
+  .enjeux { border-top: 1px solid var(--anthracite); margin-top: 16px; }
+  .enjeux div { padding-block: 18px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+  .enjeux dt { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.1rem; }
+  .enjeux dd { margin: 0; }
+  .quote { margin: 0 0 32px; max-width: 800px; display: grid; gap: 12px; }
+  .quote p { font-family: var(--font-display); font-stretch: 110%; font-size: clamp(1.3rem, 1.1rem + 1vw, 1.9rem); line-height: 1.25; }
+  .quote footer { color: var(--pierre); text-transform: uppercase; font-size: 0.74rem; letter-spacing: 0.08em; }
+  .communes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .communes li { border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; font-size: 0.92rem; }
+  .faq-grid { align-items: start; }
+</style>

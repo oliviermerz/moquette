@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+import Estimator from '../../components/Estimator.astro';
+---
+<Base
+  title="Estimer mon projet en 2 minutes"
+  description="Terrasse, piscine, allée, entrée ou escalier : décrivez votre projet en 6 questions et recevez une première estimation et une étude personnalisée STRATE."
+  crumbs={[{ name: 'Estimer mon projet', href: '/estimer-mon-projet/' }]}
+  hideMobileBar
+>
+  <section class="section section--tight">
+    <div class="container stack" style="--stack: 32px">
+      <div class="stack" style="--stack: 14px; max-width: 720px">
+        <span class="kicker">L'Estimateur STRATE · gratuit et sans engagement</span>
+        <h1 class="h1">Estimez votre projet en 2 minutes.</h1>
+      </div>
+      <Estimator />
+    </div>
+  </section>
+</Base>

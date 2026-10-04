@@ -1,0 +1,22 @@
+---
+import { site, ESTIMATE_URL } from '../config/site';
+---
+<div class="mbar" data-mbar>
+  {site.phone && (
+    <a class="mbar__tel" href={`tel:${site.phone.e164}`} data-placement="mobile-bar">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3h3l1.5 4.5-2 1.5a12 12 0 0 0 6 6l1.5-2 4.5 1.5v3A2 2 0 0 1 19 20 16 16 0 0 1 4 5a2 2 0 0 1 2.5-2z" fill="none" stroke="currentColor" stroke-width="1.5" /></svg>
+      <span class="sr-only">Appeler STRATE</span>
+    </a>
+  )}
+  <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer" data-placement="mobile-bar">Estimer mon projet</a>
+</div>
+<style>
+  .mbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    display: flex; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(241, 239, 234, 0.97); border-top: 1px solid var(--line);
+  }
+  .mbar .btn { flex: 1; }
+  .mbar__tel { display: grid; place-items: center; width: 52px; flex: none; border: 1px solid var(--anthracite); border-radius: var(--radius); color: var(--anthracite); }
+  @media (min-width: 900px) { .mbar { display: none; } }
+</style>

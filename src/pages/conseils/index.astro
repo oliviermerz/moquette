@@ -1,0 +1,34 @@
+---
+/* Phase 3 : articles « Conseils & inspirations ». En attendant, page non indexée
+   qui renvoie vers les pages de fond déjà publiées. */
+import Base from '../../layouts/Base.astro';
+import { CtaFinal } from '../../components/sections';
+const links = [
+  { href: '/moquette-de-pierre/', title: 'Moquette de pierre : tout comprendre', text: 'Composition, avantages et limites, supports, entretien.' },
+  { href: '/prix-moquette-de-pierre/', title: "Combien coûte une moquette de pierre ?", text: 'Les huit facteurs qui font le prix.' },
+  { href: '/moquette-de-pierre/comparatif/', title: 'Moquette de pierre, carrelage, béton ou pavés ?', text: 'Le comparatif pour bien choisir.' },
+  { href: '/renovation-terrasse/', title: 'Rénover sa terrasse sans tout démolir', text: 'Quand c’est possible, et quand ça ne l’est pas.' },
+];
+---
+<Base title="Conseils & inspirations" description="Conseils pour choisir, financer et entretenir un sol extérieur en pierre naturelle résinée." crumbs={[{ name: 'Conseils', href: '/conseils/' }]} noindex>
+  <section class="section section--tight">
+    <div class="container stack" style="--stack: 20px">
+      <span class="kicker">Conseils &amp; inspirations</span>
+      <h1 class="h1" style="max-width: 16ch">Bien choisir, bien entretenir.</h1>
+      <p class="lead muted">Nos guides détaillés arrivent. Pour commencer, voici l'essentiel.</p>
+    </div>
+  </section>
+  <section class="section section--flush-top">
+    <div class="container">
+      <ul class="grid-cards guides" role="list">
+        {links.map((l) => <li><a href={l.href}><h2 class="h3">{l.title}</h2><p class="muted">{l.text}</p><span class="btn btn--link">Lire</span></a></li>)}
+      </ul>
+    </div>
+  </section>
+  <CtaFinal />
+</Base>
+<style>
+  .guides a { display: grid; gap: 10px; text-decoration: none; }
+  .guides .btn { justify-self: start; }
+  @media (min-width: 1040px) { .guides { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>

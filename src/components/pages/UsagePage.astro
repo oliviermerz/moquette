@@ -1,0 +1,192 @@
+---
+/* Page usage : /terrasse-moquette-de-pierre/, /moquette-de-pierre-piscine/, etc.
+   Le contenu propre à chaque page vit dans src/data/usages.ts.
+   Dès qu'une réalisation du même usage est publiée, ses vraies photos remplacent le visuel de principe. */
+import Base from '../../layouts/Base.astro';
+import Visual from '../Visual.astro';
+import BeforeAfter from '../BeforeAfter.astro';
+import CaseCard from '../CaseCard.astro';
+import { Method, FaqList, CtaFinal, UsesGrid, Finishes } from '../sections';
+import type { Usage } from '../../data/usages';
+import { site, ESTIMATE_URL } from '../../config/site';
+import { LABELS } from '../../config/pricing';
+import { getRealisations, realisationUrl } from '../../lib/proof';
+import { usagePhotos, photos, finishPhotos } from '../../data/photos';
+
+interface Props { u: Usage }
+const { u } = Astro.props;
+const hero = usagePhotos[u.slug];
+const origin = Astro.site?.origin ?? '';
+const service = {
+  '@type': 'Service',
+  name: u.metaTitle,
+  serviceType: u.serviceType,
+  description: u.metaDescription,
+  provider: { '@id': `${origin}/#organization` },
+  areaServed: { '@type': 'AdministrativeArea', name: site.zones.region },
+  url: new URL(`/${u.slug}/`, Astro.site).href,
+};
+const statusLabel = { oui: 'Compatible', conditions: 'Sous conditions', non: 'À créer ou reprendre' } as const;
+const espace = u.slug.includes('piscine') ? 'piscine' : u.slug.includes('allee') ? 'allee' : u.slug.includes('entree') ? 'entree' : u.slug.includes('escalier') ? 'escalier' : 'terrasse';
+const real = (await getRealisations()).filter((r) => r.data.usage === espace);
+const lead = real.find((r) => r.data.featured) ?? real[0];
+---
+<Base
+  title={u.metaTitle}
+  description={u.metaDescription}
+  crumbs={[{ name: 'Solutions', href: '/solutions/' }, { name: u.label, href: `/${u.slug}/` }]}
+  faq={u.faq}
+  schema={[service]}
+>
+  <section class="section section--tight">
+    <div class="container uhero">
+      <div class="stack" style="--stack: 22px">
+        <span class="kicker">{u.kicker}</span>
+        <h1 class="h1">{u.h1}</h1>
+        <p class="lead muted">{u.intro}</p>
+        <div class="btn-row" data-placement="usage-hero">
+          <a class="btn btn--primary" href={`${ESTIMATE_URL}?espace=${espace}`} data-cta="estimer">Estimer mon projet <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn--link" href="#avant-apres">Voir un avant / après</a>
+        </div>
+      </div>
+      <Visual src={hero?.src} position={hero?.position} tex={u.tex} alt={hero?.alt ?? `${u.label} en pierre naturelle résinée`} ratio="4 / 5" priority seed={u.slug.length} label={hero ? "Photo d'illustration" : 'Visuel à produire'} sizes="(min-width: 960px) 45vw, 100vw" />
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Ce que ça change</span>
+        <h2 class="h2">Pourquoi la pierre naturelle résinée pour votre {u.label.toLowerCase()}.</h2>
+      </div>
+      <ul class="grid-cards benefits" role="list">
+        {u.benefits.map((b) => <li><h3 class="h3">{b.title}</h3><p class="muted">{b.text}</p></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="avant-apres">
+    <div class="container ba-grid">
+      <div class="stack" style="--stack: 16px">
+        <span class="kicker">Avant / après</span>
+        <h2 class="h2">La transformation, en un geste.</h2>
+        <p class="muted">Faites glisser pour comparer. Nos réalisations sont photographiées au même endroit avant et après, sans retouche.</p>
+      </div>
+      {lead ? (
+        <div class="stack" style="--stack: 12px">
+          <BeforeAfter alt={lead.data.title} beforeSrc={lead.data.avant} afterSrc={lead.data.apres} meta={{ type: u.kicker, lieu: lead.data.ville, surface: lead.data.surface ? `${lead.data.surface} m²` : `${lead.data.marches} marches`, duree: `${lead.data.dureeJours} jours`, support: LABELS.support[lead.data.support] }} />
+          <a class="btn btn--link" href={realisationUrl(lead)} style="justify-self:start">Voir l'étude de cas</a>
+        </div>
+      ) : (
+        <BeforeAfter alt={u.label.toLowerCase()} beforeSrc={photos.renovationFissures.src} afterSrc={finishPhotos[u.tex]?.src} beforeTex={u.before} afterTex={u.tex} placeholderNote meta={{ type: u.kicker }} seed={u.slug.length + 3} />
+      )}
+    </div>
+  </section>
+
+  {real.length > 1 && (
+    <section class="section section--flush-top">
+      <div class="container">
+        <div class="section-head"><span class="kicker">Réalisations</span><h2 class="h2">D'autres projets de {u.label.toLowerCase()}.</h2></div>
+        <div class="cases">{real.filter((r) => r !== lead).slice(0, 3).map((r) => <CaseCard r={r} />)}</div>
+      </div>
+    </section>
+  )}
+
+  <section class="section section--flush-top">
+    <div class="container grid-2 supports-grid">
+      <div class="section-head">
+        <span class="kicker">Supports</span>
+        <h2 class="h2">Sur quoi peut-on poser ?</h2>
+        <p class="muted">Le diagnostic sur place confirme toujours la compatibilité. Voici les cas les plus fréquents.</p>
+      </div>
+      <table class="supports">
+        <caption class="sr-only">Compatibilité des supports</caption>
+        <tbody>
+          {u.supports.map((s) => (
+            <tr>
+              <th scope="row">{s.name}</th>
+              <td><span class={`chip chip--${s.status}`}>{statusLabel[s.status]}</span></td>
+              <td class="muted">{s.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section section--dark">
+    <div class="container grid-2">
+      <div class="section-head">
+        <span class="kicker">Points d'attention</span>
+        <h2 class="h2">Ce que nous vérifions pour vous.</h2>
+        <Visual src={photos.conseilDiagnostic.src} alt={photos.conseilDiagnostic.alt} ratio="3 / 2" sizes="(min-width: 900px) 40vw, 100vw" />
+      </div>
+      <ul class="list-dash attention" role="list">{u.attention.map((a) => <li>{a}</li>)}</ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Finitions</span>
+        <h2 class="h2">Choisissez votre minéral.</h2>
+      </div>
+      <Finishes />
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Notre méthode</span>
+        <h2 class="h2">La Méthode 5 Strates.</h2>
+      </div>
+      <Method />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid-2 faq-grid">
+      <div class="section-head">
+        <span class="kicker">Questions fréquentes</span>
+        <h2 class="h2">{u.label} : vos questions.</h2>
+      </div>
+      <FaqList items={u.faq} />
+    </div>
+  </section>
+
+  <section class="section section--flush-top">
+    <div class="container">
+      <div class="section-head"><span class="kicker">Autres solutions</span><h2 class="h2">Prolongez la transformation.</h2></div>
+      <UsesGrid slugs={u.related} />
+    </div>
+  </section>
+
+  <CtaFinal title={`Parlons de votre ${u.label.toLowerCase()}.`} placement="usage-cta-final" />
+</Base>
+
+<style>
+  .uhero { display: grid; gap: 40px; }
+  @media (min-width: 960px) { .uhero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: center; gap: 72px; } }
+  .benefits li { display: grid; gap: 10px; align-content: start; }
+  .ba-grid { display: grid; gap: 32px; }
+  @media (min-width: 960px) { .ba-grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr); align-items: center; gap: 64px; } }
+  .supports-grid { align-items: start; }
+  .supports { width: 100%; border-collapse: collapse; border-top: 1px solid var(--anthracite); }
+  .supports th, .supports td { text-align: left; vertical-align: top; padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
+  .supports th { font-weight: 500; width: 34%; }
+  .supports td:nth-child(2) { width: 1%; white-space: nowrap; }
+  @media (max-width: 640px) {
+    .supports tr { display: grid; grid-template-columns: 1fr auto; padding-block: 14px; border-bottom: 1px solid var(--line); }
+    .supports th, .supports td { border: 0; padding: 0; width: auto; }
+    .supports td:last-child { grid-column: 1 / -1; margin-top: 6px; }
+  }
+  .chip { display: inline-block; font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 8px; border: 1px solid currentColor; border-radius: 999px; }
+  .chip--oui { color: var(--ok); }
+  .chip--conditions { color: var(--warn); }
+  .chip--non { color: var(--pierre); }
+  .attention { font-size: 1.05rem; }
+  .cases { display: grid; gap: 24px; }
+  @media (min-width: 800px) { .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .faq-grid { align-items: start; }
+</style>

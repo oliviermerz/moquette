@@ -1,0 +1,36 @@
+---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Base from '../layouts/Base.astro';
+import { credits } from '../data/credits';
+
+const files = import.meta.glob<{ default: ImageMetadata }>('../assets/photos/*.jpg', { eager: true });
+const img = (file: string) => files[`../assets/photos/${file}`]?.default;
+---
+<Base title="Crédits photos" description="Crédits des photos d'illustration utilisées sur le site STRATE." crumbs={[{ name: 'Crédits photos', href: '/credits-photos/' }]} noindex>
+  <section class="section section--tight">
+    <div class="container stack" style="--stack: 32px">
+      <div class="prose">
+        <h1 class="h1">Crédits photos</h1>
+        <p>En attendant la publication de nos propres chantiers, certaines photos d'ambiance du site proviennent d'<a href="https://unsplash.com/fr" rel="noopener">Unsplash</a>, sous <a href="https://unsplash.com/fr/licence" rel="noopener">licence Unsplash</a>. Elles illustrent des usages et des matières : ce ne sont pas des réalisations STRATE. Nos réalisations sont présentées dans la rubrique <a href="/realisations/">Réalisations</a>, avec leurs photos avant et après.</p>
+      </div>
+      <ul class="credits" role="list">
+        {credits.map((c) => {
+          const src = img(c.file);
+          return (
+            <li>
+              {src && <Picture src={src} alt="" formats={['avif', 'webp']} widths={[240, 480]} sizes="240px" />}
+              <span>Photo : <a href={c.page} rel="noopener">{c.author}</a> sur Unsplash</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  </section>
+</Base>
+<style>
+  .credits { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); font-size: 0.85rem; }
+  .credits li { display: grid; gap: 6px; }
+  .credits :global(img) { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+  .credits a, .prose a { color: var(--ocre); }
+</style>

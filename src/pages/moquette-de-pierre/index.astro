@@ -1,0 +1,141 @@
+---
+import Base from '../../layouts/Base.astro';
+import Visual from '../../components/Visual.astro';
+import { Coupe, FaqList, CtaFinal, UsesGrid, Finishes } from '../../components/sections';
+import { ESTIMATE_URL } from '../../config/site';
+import { photos } from '../../data/photos';
+import type { Faq } from '../../data/usages';
+
+const faq: Faq[] = [
+  { q: "Qu'est-ce qu'une moquette de pierre ?", a: "Un revêtement de sol composé de granulats naturels (marbre, quartz, pierre roulée) liés par une résine. Posé en faible épaisseur sur un support préparé, il forme une surface continue, texturée et perméable dans sa masse." },
+  { q: 'Quelle est la durée de vie d’une moquette de pierre ?', a: "Elle dépend surtout de trois facteurs : la qualité de la résine (notamment sa tenue aux UV), la préparation du support et la qualité de la pose. Les garanties applicables sont précisées dans le devis." },
+  { q: 'La moquette de pierre jaunit-elle ?', a: "Certaines résines non stabilisées aux UV peuvent jaunir au soleil. Le choix du système de résine est donc déterminant en extérieur : c'est un point que nous détaillons dans chaque devis." },
+  { q: 'Peut-on poser une moquette de pierre soi-même ?', a: "Des kits existent. Mais la préparation du support, le dosage de la résine, les conditions météo et le temps de travail du mélange laissent peu de place à l'erreur. Une pose ratée se reprend difficilement." },
+  { q: 'Comment nettoyer une moquette de pierre ?', a: "Balayage régulier, souffleur pour les feuilles, nettoyage à l'eau. Le nettoyeur haute pression s'utilise à distance et à pression modérée, selon les recommandations du fabricant. Les taches grasses se traitent rapidement." },
+];
+const pros = [
+  'Aspect minéral naturel, nombreuses combinaisons de couleurs',
+  'Surface continue, sans joints de carrelage',
+  "Perméable dans sa masse : l'eau ne stagne pas en surface",
+  "Pose souvent possible sur l'existant, sans démolition",
+  'Agréable pieds nus, avec de l’accroche',
+];
+const cons = [
+  "Ne se pose pas sur n'importe quel support : un diagnostic est indispensable",
+  'Demande une pose professionnelle, par temps sec et à température adaptée',
+  'Sensible aux graisses et à la chaleur directe (barbecue, brasero) sans protection',
+  'La qualité dépend fortement de la résine utilisée',
+];
+---
+<Base
+  title="Moquette de pierre : tout comprendre"
+  description="Composition, avantages et limites, supports compatibles, entretien : tout ce qu'il faut savoir sur la moquette de pierre avant de transformer votre extérieur."
+  crumbs={[{ name: 'Moquette de pierre', href: '/moquette-de-pierre/' }]}
+  faq={faq}
+  schema={[{ '@type': 'Article', headline: 'Moquette de pierre : tout comprendre', inLanguage: 'fr-FR', author: { '@type': 'Organization', name: 'STRATE' } }]}
+>
+  <section class="section section--tight">
+    <div class="container grid-2">
+      <div class="stack" style="--stack: 22px">
+        <span class="kicker">La technologie</span>
+        <h1 class="h1">La moquette de pierre, expliquée simplement.</h1>
+        <p class="lead muted">Pierre naturelle + résine haute performance + savoir-faire de pose. Voici ce que c'est, ce que ça permet, et ce que ça ne permet pas.</p>
+        <nav aria-label="Sommaire de la page" class="toc">
+          <a href="#composition">Composition</a><a href="#avantages">Avantages et limites</a><a href="#supports">Supports</a><a href="#entretien">Entretien</a><a href="#faq">Questions</a>
+        </nav>
+      </div>
+      <Visual src={photos.galetsMacro.src} alt={photos.galetsMacro.alt} ratio="1 / 1" priority sizes="(min-width: 900px) 45vw, 100vw" />
+    </div>
+  </section>
+
+  <section class="section section--alt" id="composition">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Composition</span>
+        <h2 class="h2">Quatre couches, une seule surface.</h2>
+        <p class="muted">Ce qu'on voit, la pierre, ne tient que par ce qu'on ne voit pas.</p>
+      </div>
+      <Coupe />
+    </div>
+  </section>
+
+  <section class="section" id="avantages">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Avantages et limites</span>
+        <h2 class="h2">Une bonne solution, pas une solution universelle.</h2>
+      </div>
+      <div class="grid-2 pc">
+        <div class="stack"><h3 class="h3">Ce qu'elle apporte</h3><ul class="list-dash" role="list">{pros.map((p) => <li>{p}</li>)}</ul></div>
+        <div class="stack"><h3 class="h3">Ce qu'il faut savoir</h3><ul class="list-dash" role="list">{cons.map((p) => <li>{p}</li>)}</ul></div>
+      </div>
+      <p class="pc-link"><a class="btn btn--link" href="/moquette-de-pierre/comparatif/">Comparer avec le carrelage, le béton et les pavés</a></p>
+    </div>
+  </section>
+
+  <section class="section section--dark" id="supports">
+    <div class="container grid-2">
+      <div class="section-head">
+        <span class="kicker">Supports</span>
+        <h2 class="h2">Le support décide de tout.</h2>
+        <p class="muted">Une moquette de pierre a besoin d'un support sain, stable et adhérent. C'est pourquoi nous diagnostiquons avant de chiffrer.</p>
+      </div>
+      <ul class="list-dash" role="list">
+        <li><b>Béton :</b> le support idéal, après nettoyage et traitement des fissures.</li>
+        <li><b>Carrelage :</b> possible s'il est bien adhérent ; les carreaux creux sont repris.</li>
+        <li><b>Dallage, pavés :</b> uniquement s'ils sont stables et bien jointoyés.</li>
+        <li><b>Enrobé :</b> selon son état et le système retenu.</li>
+        <li><b>Terre, gravier, gazon :</b> une base stable doit d'abord être créée.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head"><span class="kicker">Finitions</span><h2 class="h2">Des couleurs de pierre, pas de peinture.</h2><p class="muted">La teinte vient des granulats eux-mêmes : elle ne s'écaille pas.</p></div>
+      <Finishes />
+    </div>
+  </section>
+
+  <section class="section section--alt" id="entretien">
+    <div class="container grid-2">
+      <div class="section-head">
+        <span class="kicker">Entretien</span>
+        <h2 class="h2">Simple, à condition de le faire.</h2>
+      </div>
+      <ul class="list-dash" role="list">
+        <li>Balayage ou souffleur réguliers, surtout à l'automne.</li>
+        <li>Nettoyage à l'eau claire. Nettoyeur haute pression à distance et à pression modérée, selon la fiche du fabricant.</li>
+        <li>Taches grasses traitées rapidement, avec un produit adapté.</li>
+        <li>Éviter les produits agressifs non recommandés par le fabricant.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head"><span class="kicker">Usages</span><h2 class="h2">Où l'utiliser ?</h2></div>
+      <UsesGrid />
+    </div>
+  </section>
+
+  <section class="section section--flush-top" id="faq">
+    <div class="container grid-2 faq-grid">
+      <div class="section-head">
+        <span class="kicker">Questions fréquentes</span>
+        <h2 class="h2">Moquette de pierre : vos questions.</h2>
+        <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer" data-placement="pilier-faq" style="justify-self:start">Estimer mon projet</a>
+      </div>
+      <FaqList items={faq} />
+    </div>
+  </section>
+
+  <CtaFinal />
+</Base>
+<style>
+  .toc { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.9rem; }
+  .toc a { color: var(--ocre); }
+  .pc { align-items: start; }
+  .pc-link { margin-top: 32px; }
+  .faq-grid { align-items: start; }
+</style>

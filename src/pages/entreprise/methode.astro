@@ -1,0 +1,54 @@
+---
+import Base from '../../layouts/Base.astro';
+import { Method, CtaFinal } from '../../components/sections';
+import { ESTIMATE_URL } from '../../config/site';
+import Visual from '../../components/Visual.astro';
+import { photos } from '../../data/photos';
+---
+<Base
+  title="La Méthode 5 Strates"
+  description="Imaginer, diagnostiquer, visualiser, transformer, profiter : les cinq étapes de la Méthode 5 Strates pour transformer votre extérieur en pierre naturelle."
+  crumbs={[{ name: "L'entreprise", href: '/entreprise/' }, { name: 'Notre méthode', href: '/entreprise/methode/' }]}
+>
+  <section class="section section--tight">
+    <div class="container stack" style="--stack: 22px">
+      <span class="kicker">Notre méthode</span>
+      <h1 class="h1" style="max-width: 14ch">La Méthode 5 Strates.</h1>
+      <p class="lead muted">Un beau sol se construit en couches. Un beau projet aussi. Cinq étapes, du premier échange à la réception du chantier, pour que rien ne soit laissé au hasard.</p>
+    </div>
+  </section>
+  <section class="section section--flush-top">
+    <div class="container stack" style="--stack: 40px">
+      <div class="duo">
+        <Visual src={photos.conseilDiagnostic.src} alt={photos.conseilDiagnostic.alt} ratio="3 / 2" priority sizes="(min-width: 800px) 50vw, 100vw" />
+        <Visual src={photos.artisanSol.src} alt={photos.artisanSol.alt} ratio="3 / 2" sizes="(min-width: 800px) 50vw, 100vw" />
+      </div>
+      <Method detailed />
+    </div>
+  </section>
+  <section class="section section--alt">
+    <div class="container grid-2">
+      <div class="section-head">
+        <span class="kicker">Nos engagements</span>
+        <h2 class="h2">Ce qui ne change jamais.</h2>
+      </div>
+      <ul class="list-dash" role="list">
+        <li>Pas de devis sans diagnostic du support.</li>
+        <li>Si votre support ne convient pas, nous vous le disons, même si cela nous fait perdre le chantier.</li>
+        <li>Un devis détaillé poste par poste, sans ligne fourre-tout.</li>
+        <li>Chaque chantier est photographié avant, pendant et après.</li>
+        <li>Les garanties sont expliquées par écrit, avec ce qu'elles couvrent et ce qu'elles ne couvrent pas.</li>
+      </ul>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container btn-row" data-placement="methode">
+      <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer">Commencer par l'étape 1 <span class="arrow" aria-hidden="true">→</span></a>
+    </div>
+  </section>
+  <CtaFinal />
+</Base>
+<style>
+  .duo { display: grid; gap: 16px; }
+  @media (min-width: 800px) { .duo { grid-template-columns: 1fr 1fr; } }
+</style>

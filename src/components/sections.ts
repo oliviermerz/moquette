@@ -1,0 +1,9 @@
+export { default as Coupe } from './Coupe.astro';
+export { default as Method } from './Method.astro';
+export { default as WhyUs } from './WhyUs.astro';
+export { default as FaqList } from './FaqList.astro';
+export { default as CtaFinal } from './CtaFinal.astro';
+export { default as UsesGrid } from './UsesGrid.astro';
+export { default as Pillars } from './Pillars.astro';
+export { default as SimTeaser } from './SimTeaser.astro';
+export { default as Finishes } from './Finishes.astro';

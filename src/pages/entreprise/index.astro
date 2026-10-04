@@ -1,0 +1,46 @@
+---
+import Base from '../../layouts/Base.astro';
+import { WhyUs, CtaFinal } from '../../components/sections';
+import { site } from '../../config/site';
+import PhotoBand from '../../components/PhotoBand.astro';
+import { photos } from '../../data/photos';
+---
+<Base
+  title="L'entreprise"
+  description="STRATE, spécialiste de la transformation des extérieurs en pierre naturelle résinée. Notre vision, notre méthode, nos engagements."
+  crumbs={[{ name: "L'entreprise", href: '/entreprise/' }]}
+>
+  <section class="section section--tight">
+    <div class="container grid-2">
+      <div class="stack" style="--stack: 22px">
+        <span class="kicker">L'entreprise</span>
+        <h1 class="h1">La beauté en surface, la rigueur en profondeur.</h1>
+      </div>
+      <div class="stack" style="--stack: 16px">
+        <p class="lead">Un beau sol extérieur est une affaire de couches. Ce qu'on voit, la pierre, ne tient que par ce qu'on ne voit pas : la résine, la couche technique, un support diagnostiqué.</p>
+        <p class="muted">STRATE est née de cette idée. Nous ne vendons pas des mètres carrés de résine : nous transformons des extérieurs, en commençant toujours par comprendre ce qu'il y a dessous. Nous intervenons aujourd'hui en {site.zones.region}.</p>
+      </div>
+    </div>
+  </section>
+  <PhotoBand photo={photos.artisanTaloche} title="Un seul métier, fait avec soin." text="Préparer, poser, finir : chaque étape compte pour qu'un sol extérieur tienne dans le temps." />
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head"><span class="kicker">Pourquoi STRATE</span><h2 class="h2">Six engagements.</h2></div>
+      <WhyUs />
+      <p style="margin-top: 32px"><a class="btn btn--link" href="/entreprise/methode/">Découvrir la Méthode 5 Strates</a></p>
+    </div>
+  </section>
+  {(site.legal.insurerDecennale || site.legal.insurerRcPro) && (
+    <section class="section">
+      <div class="container grid-2">
+        <div class="section-head"><span class="kicker">Assurances</span><h2 class="h2">Vous êtes couvert.</h2></div>
+        <ul class="list-dash" role="list">
+          {site.legal.insurerDecennale && <li><b>Garantie décennale :</b> {site.legal.insurerDecennale}</li>}
+          {site.legal.insurerRcPro && <li><b>Responsabilité civile professionnelle :</b> {site.legal.insurerRcPro}</li>}
+        </ul>
+      </div>
+    </section>
+  )}
+  <CtaFinal />
+</Base>

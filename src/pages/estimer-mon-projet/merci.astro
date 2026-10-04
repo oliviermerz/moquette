@@ -1,0 +1,15 @@
+---
+/* Page de confirmation, utilisée quand le formulaire est envoyé sans JavaScript. */
+import Base from '../../layouts/Base.astro';
+import { site } from '../../config/site';
+---
+<Base title="Demande envoyée" description="Votre demande d'étude STRATE a bien été envoyée." noindex hideMobileBar>
+  <section class="section">
+    <div class="container stack" style="--stack: 20px; max-width: 760px">
+      <span class="kicker">Demande envoyée</span>
+      <h1 class="h1">Merci. Votre projet est entre de bonnes mains.</h1>
+      <p class="lead muted">Vous allez recevoir le récapitulatif par email. Un conseiller STRATE vous recontacte{site.callbackDelay ? ` ${site.callbackDelay}` : ' rapidement'} pour en parler.</p>
+      <div class="btn-row"><a class="btn btn--outline" href="/solutions/">Découvrir nos solutions</a></div>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,300 @@
+---
+/**
+ * STRATE Vision : photo → zone → finition → aperçu instantané (local) → rendu réaliste (IA, contre email).
+ * La photo est redimensionnée et réencodée dans le navigateur : les métadonnées (dont la position GPS) sont supprimées.
+ */
+import Visual from './Visual.astro';
+import { FINISHES } from '../data/textures';
+import { LABELS } from '../config/pricing';
+---
+<div class="vt" data-vision>
+  <div class="vt__stage">
+    <div class="vt__empty" data-vt-empty>
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v12H4z M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" fill="none" stroke="currentColor" stroke-width="1.4" /></svg>
+      <p class="h3">Commencez par une photo de votre extérieur.</p>
+      <p class="muted">Prise debout, le sol bien visible, à la lumière du jour.</p>
+      <label class="btn btn--primary vt__upload">Choisir une photo<input type="file" accept="image/*" data-vt-file /></label>
+    </div>
+    <canvas class="vt__canvas" data-vt-canvas hidden aria-label="Votre photo. Touchez les angles du sol à transformer."></canvas>
+    <img class="vt__result" data-vt-result alt="Simulation de votre extérieur en pierre naturelle résinée" hidden />
+    <div class="vt__loading" data-vt-loading hidden><span class="spinner" aria-hidden="true"></span><p>Nous posons la pierre…<br /><small>Environ 30 secondes</small></p></div>
+  </div>
+
+  <div class="vt__panel">
+    <ol class="vt__steps" role="list">
+      <li class="vt__step" data-vt-step="photo">
+        <p class="vt__label"><span class="mono">01</span> Votre photo</p>
+        <p class="muted small" data-vt-photo-hint>Elle reste sur votre appareil jusqu'à la demande de rendu réaliste.</p>
+        <label class="btn btn--link vt__change" hidden data-vt-change>Changer de photo<input type="file" accept="image/*" data-vt-file /></label>
+      </li>
+      <li class="vt__step" data-vt-step="zone">
+        <p class="vt__label"><span class="mono">02</span> Le sol à transformer</p>
+        <p class="muted small" data-vt-zone-hint>Touchez les angles du sol, dans l'ordre. Vous pouvez déplacer un point en le faisant glisser.</p>
+        <div class="btn-row vt__tools">
+          <button type="button" class="chip" data-vt-undo>Annuler le dernier point</button>
+          <button type="button" class="chip" data-vt-reset>Recommencer</button>
+        </div>
+      </li>
+      <li class="vt__step" data-vt-step="finish">
+        <p class="vt__label"><span class="mono">03</span> La finition</p>
+        <div class="vt__swatches" role="radiogroup" aria-label="Finition">
+          {FINISHES.map((f, i) => (
+            <label class="vt__sw">
+              <input type="radio" name="vt-finish" value={f.tex} checked={i === 0} />
+              <Visual tex={f.tex} alt="" ratio="1 / 1" seed={70 + i} />
+              <span>{f.name}</span>
+            </label>
+          ))}
+        </div>
+        <div class="seg" role="group" aria-label="Affichage" data-vt-seg hidden>
+          <button type="button" aria-pressed="false" data-vt-show="before">Avant</button>
+          <button type="button" aria-pressed="true" data-vt-show="after">Après</button>
+        </div>
+        <p class="mono muted small">Aperçu simplifié. Le rendu réaliste respecte la lumière et la perspective.</p>
+      </li>
+      <li class="vt__step" data-vt-step="render">
+        <p class="vt__label"><span class="mono">04</span> Le rendu réaliste</p>
+        <form class="vt__form" data-vt-form novalidate>
+          <div class="row">
+            <div class="field"><label for="vt-prenom">Prénom</label><input id="vt-prenom" name="prenom" autocomplete="given-name" required /></div>
+            <div class="field"><label for="vt-email">Email</label><input id="vt-email" name="email" type="email" inputmode="email" autocomplete="email" required /></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="vt-tel">Téléphone <span class="opt">(facultatif)</span></label><input id="vt-tel" name="telephone" type="tel" inputmode="tel" autocomplete="tel" /></div>
+            <div class="field"><label for="vt-cp">Code postal <span class="opt">(facultatif)</span></label><input id="vt-cp" name="code_postal" inputmode="numeric" maxlength="5" autocomplete="postal-code" /></div>
+          </div>
+          <div class="field"><label for="vt-espace">Espace</label>
+            <select id="vt-espace" name="espace">{Object.entries(LABELS.espace).map(([v, l]) => <option value={v}>{l}</option>)}</select>
+          </div>
+          <label class="check"><input type="checkbox" name="consentement_traitement" value="true" required /><span>J'accepte que ma photo soit transmise à notre prestataire d'intelligence artificielle pour créer la simulation, et que STRATE utilise mes coordonnées pour m'envoyer le résultat et me recontacter à propos de mon projet. <a href="/confidentialite/">Confidentialité</a></span></label>
+          <label class="check"><input type="checkbox" name="consentement_marketing" value="true" /><span>Je souhaite recevoir des idées et réalisations par email (facultatif).</span></label>
+          <p class="err" data-vt-error role="alert" hidden></p>
+          <button type="submit" class="btn btn--primary" data-vt-submit>Visualiser mon projet <span class="arrow" aria-hidden="true">→</span></button>
+          <p class="mono muted small">Simulation visuelle non contractuelle. Vous la recevez aussi par email.</p>
+        </form>
+        <div class="vt__done" data-vt-done hidden>
+          <p class="h3">Voici votre extérieur, version STRATE.</p>
+          <div class="seg" role="group" aria-label="Comparer"><button type="button" aria-pressed="false" data-vt-res="before">Avant</button><button type="button" aria-pressed="true" data-vt-res="after">Après</button></div>
+          <div class="btn-row">
+            <a class="btn btn--primary" href="/estimer-mon-projet/" data-vt-estimate data-cta="estimer" data-placement="vision">Estimer mon projet <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn--link" download="simulation-strate.jpg" data-vt-download>Télécharger</a>
+          </div>
+          <button type="button" class="btn btn--link" data-vt-again>Essayer une autre finition</button>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<script>
+  import { track, getAttribution } from '../scripts/tracking';
+
+  const root = document.querySelector<HTMLElement>('[data-vision]')!;
+  const canvas = root.querySelector<HTMLCanvasElement>('[data-vt-canvas]')!;
+  const ctx = canvas.getContext('2d')!;
+  const resultImg = root.querySelector<HTMLImageElement>('[data-vt-result]')!;
+  const loading = root.querySelector<HTMLElement>('[data-vt-loading]')!;
+  const form = root.querySelector<HTMLFormElement>('[data-vt-form]')!;
+  const errBox = root.querySelector<HTMLElement>('[data-vt-error]')!;
+  const done = root.querySelector<HTMLElement>('[data-vt-done]')!;
+  const zoneHint = root.querySelector<HTMLElement>('[data-vt-zone-hint]')!;
+  const seg = root.querySelector<HTMLElement>('[data-vt-seg]')!;
+
+  const TONES: Record<string, string[]> = {
+    beige: ['#d8c7a6', '#cbb48d', '#e3d5bb', '#b99d74', '#efe4cf', '#a88b63'],
+    blanc: ['#f1efea', '#e4e0d8', '#d6d2c9', '#faf9f6', '#c9c4ba'],
+    gris: ['#9a9a96', '#7d7e7b', '#b4b3ae', '#5f605d', '#c8c7c2'],
+    mix: ['#d8c7a6', '#9a9a96', '#efe4cf', '#6f6a63', '#b99d74', '#c9c4ba'],
+  };
+  const BG: Record<string, string> = { beige: '#4f4232', blanc: '#8f897e', gris: '#2f302d', mix: '#3d3933' };
+
+  let photo: HTMLCanvasElement | null = null; // photo normalisée (sans métadonnées)
+  let pts: [number, number][] = [];
+  let showAfter = true;
+  let dragIdx = -1;
+  const patterns: Record<string, CanvasPattern> = {};
+  const finish = () => (root.querySelector<HTMLInputElement>('input[name="vt-finish"]:checked')?.value ?? 'beige');
+
+  function texture(key: string) {
+    if (patterns[key]) return patterns[key];
+    const c = document.createElement('canvas'); c.width = c.height = 240;
+    const g = c.getContext('2d')!;
+    g.fillStyle = BG[key]; g.fillRect(0, 0, 240, 240);
+    let s = 11; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 2600; i++) {
+      const x = r() * 240, y = r() * 240, rx = 2 + r() * 1.6, ry = rx * (0.6 + r() * 0.35), a = r() * Math.PI;
+      g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(x + 0.6, y + 0.8, rx, ry, a, 0, 7); g.fill();
+      g.fillStyle = TONES[key][Math.floor(r() * TONES[key].length)]; g.beginPath(); g.ellipse(x, y, rx, ry, a, 0, 7); g.fill();
+    }
+    return (patterns[key] = ctx.createPattern(c, 'repeat')!);
+  }
+
+  function polygon(c: CanvasRenderingContext2D) { c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); }
+
+  function draw() {
+    if (!photo) return;
+    ctx.drawImage(photo, 0, 0);
+    const closed = pts.length >= 3;
+    if (closed && showAfter) {
+      ctx.save(); polygon(ctx); ctx.clip();
+      ctx.fillStyle = texture(finish()); ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'soft-light'; ctx.globalAlpha = 0.55; ctx.drawImage(photo, 0, 0);
+      ctx.restore();
+    }
+    const u = canvas.width / 600;
+    ctx.lineWidth = 2.5 * u; ctx.strokeStyle = '#C88757'; ctx.setLineDash(closed ? [] : [8 * u, 6 * u]);
+    if (pts.length > 1) { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); if (closed) ctx.closePath(); ctx.stroke(); }
+    ctx.setLineDash([]);
+    for (const [x, y] of pts) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 9 * u, 0, 7); ctx.fill(); ctx.fillStyle = '#C88757'; ctx.beginPath(); ctx.arc(x, y, 6 * u, 0, 7); ctx.fill(); }
+    seg.hidden = !closed;
+    zoneHint.textContent = pts.length === 0 ? "Touchez les angles du sol, dans l'ordre. Vous pouvez déplacer un point en le faisant glisser."
+      : pts.length < 3 ? `${pts.length} point${pts.length > 1 ? 's' : ''}. Continuez sur les angles du sol.`
+      : `${pts.length} points : zone tracée. Ajoutez des points pour affiner, ou choisissez votre finition.`;
+  }
+
+  /** Redimensionne à 1536 px max (dimensions multiples de 16) et réencode : supprime les métadonnées EXIF/GPS */
+  async function loadPhoto(file: File) {
+    const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' } as ImageBitmapOptions).catch(() => null);
+    if (!bmp) { alertBox('Ce fichier ne peut pas être lu. Essayez une photo JPG ou PNG.'); return; }
+    const scale = Math.min(1, 1536 / Math.max(bmp.width, bmp.height));
+    const w = Math.max(256, Math.round((bmp.width * scale) / 16) * 16), h = Math.max(256, Math.round((bmp.height * scale) / 16) * 16);
+    photo = document.createElement('canvas'); photo.width = w; photo.height = h;
+    photo.getContext('2d')!.drawImage(bmp, 0, 0, w, h);
+    canvas.width = w; canvas.height = h;
+    pts = []; showAfter = true;
+    root.querySelector<HTMLElement>('[data-vt-empty]')!.hidden = true;
+    canvas.hidden = false; resultImg.hidden = true; done.hidden = true; form.hidden = false;
+    root.querySelector<HTMLElement>('[data-vt-change]')!.hidden = false;
+    root.toggleAttribute('data-has-photo', true);
+    draw();
+    track('photo_upload', { source: 'vision' });
+  }
+  function alertBox(msg: string) { errBox.textContent = msg; errBox.hidden = false; }
+
+  root.querySelectorAll<HTMLInputElement>('[data-vt-file]').forEach((inp) => inp.addEventListener('change', () => { const f = inp.files?.[0]; if (f) loadPhoto(f); inp.value = ''; }));
+
+  const toCanvas = (e: PointerEvent): [number, number] => { const r = canvas.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * canvas.width, ((e.clientY - r.top) / r.height) * canvas.height]; };
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!photo) return;
+    const [x, y] = toCanvas(e);
+    const tol = (canvas.width / canvas.getBoundingClientRect().width) * 22;
+    dragIdx = pts.findIndex(([px, py]) => Math.hypot(px - x, py - y) < tol);
+    if (dragIdx < 0) { pts.push([x, y]); dragIdx = pts.length - 1; }
+    canvas.setPointerCapture(e.pointerId);
+    draw();
+  });
+  canvas.addEventListener('pointermove', (e) => { if (dragIdx >= 0) { pts[dragIdx] = toCanvas(e); draw(); } });
+  canvas.addEventListener('pointerup', () => { dragIdx = -1; });
+  root.querySelector('[data-vt-undo]')!.addEventListener('click', () => { pts.pop(); draw(); });
+  root.querySelector('[data-vt-reset]')!.addEventListener('click', () => { pts = []; draw(); });
+  root.querySelectorAll('input[name="vt-finish"]').forEach((r) => r.addEventListener('change', () => { showAfter = true; syncSeg(seg, 'after'); draw(); }));
+  function syncSeg(group: HTMLElement, v: string) { group.querySelectorAll<HTMLButtonElement>('button').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.vtShow ?? b.dataset.vtRes) === v))); }
+  seg.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-vt-show]'); if (!b) return; showAfter = b.dataset.vtShow === 'after'; syncSeg(seg, b.dataset.vtShow!); draw(); });
+
+  const toBlob = (c: HTMLCanvasElement, type: string, q?: number) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('blob'))), type, q));
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errBox.hidden = true;
+    if (!photo) return alertBox("Ajoutez d'abord une photo de votre extérieur.");
+    if (pts.length < 3) return alertBox('Tracez la zone du sol à transformer (au moins 3 points).');
+    const fd = new FormData(form);
+    const v = (k: string) => String(fd.get(k) ?? '').trim();
+    const missing: string[] = [];
+    if (!v('prenom')) missing.push('votre prénom');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) missing.push('un email valide');
+    if (v('code_postal') && !/^\d{5}$/.test(v('code_postal'))) missing.push('un code postal à 5 chiffres');
+    if (!fd.get('consentement_traitement')) missing.push('votre accord');
+    if (missing.length) return alertBox(`Il manque ${missing.join(', ')}.`);
+
+    // Masque : opaque partout, transparent sur la zone à transformer
+    const m = document.createElement('canvas'); m.width = photo.width; m.height = photo.height;
+    const mc = m.getContext('2d')!;
+    mc.fillStyle = '#000'; mc.fillRect(0, 0, m.width, m.height);
+    mc.globalCompositeOperation = 'destination-out'; polygon(mc); mc.fill();
+    fd.append('photo', await toBlob(photo, 'image/jpeg', 0.9), 'photo.jpg');
+    fd.append('mask', await toBlob(m, 'image/png'), 'mask.png');
+    fd.append('finition', finish());
+    fd.append('attribution', JSON.stringify(getAttribution()));
+    fd.append('page', location.pathname);
+
+    const btn = root.querySelector<HTMLButtonElement>('[data-vt-submit]')!;
+    btn.disabled = true; loading.hidden = false;
+    track('visualization_request', { finish: finish() });
+    try {
+      const res = await fetch('/api/vision/', { method: 'POST', body: fd });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.ok) throw Object.assign(new Error(body.error || String(res.status)), { lead: body.leadRecorded });
+      resultImg.src = body.image;
+      resultImg.hidden = false; canvas.hidden = true;
+      form.hidden = true; done.hidden = false;
+      const dl = root.querySelector<HTMLAnchorElement>('[data-vt-download]')!; dl.href = body.image;
+      const est = root.querySelector<HTMLAnchorElement>('[data-vt-estimate]')!;
+      est.href = `/estimer-mon-projet/?${new URLSearchParams({ espace: v('espace'), ...(v('code_postal') ? { cp: v('code_postal') } : {}) })}`;
+      if (body.leadRecorded) track('generate_lead', { form_id: 'vision' });
+    } catch (err) {
+      const code = (err as Error).message;
+      alertBox(code === 'limite_atteinte' ? 'Vous avez atteint le nombre de simulations possibles pour aujourd’hui. Un conseiller peut vous en préparer d’autres.'
+        : code === 'vision_indisponible' ? "Le rendu réaliste n'est pas encore disponible. L'aperçu ci-dessus vous donne déjà une idée."
+        : (err as { lead?: boolean }).lead ? 'Le rendu automatique a échoué, mais votre demande est bien enregistrée : nous vous enverrons la simulation par email.'
+        : "La simulation n'a pas pu être créée. Réessayez dans un instant.");
+    } finally {
+      btn.disabled = false; loading.hidden = true;
+    }
+  });
+
+  const resSeg = done.querySelector<HTMLElement>('.seg')!;
+  resSeg.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-vt-res]'); if (!b) return;
+    const after = b.dataset.vtRes === 'after';
+    resultImg.hidden = !after; canvas.hidden = after;
+    if (!after) { showAfter = false; draw(); }
+    syncSeg(resSeg, b.dataset.vtRes!);
+  });
+  root.querySelector('[data-vt-again]')!.addEventListener('click', () => {
+    done.hidden = true; form.hidden = false; resultImg.hidden = true; canvas.hidden = false; showAfter = true; syncSeg(seg, 'after'); draw();
+  });
+</script>
+
+<style>
+  .vt { display: grid; gap: 24px; }
+  @media (min-width: 1000px) { .vt { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } }
+  .vt__stage { position: relative; background: var(--chaux-2); border: 1px solid var(--line); min-height: 320px; display: grid; place-items: center; overflow: hidden; }
+  @media (min-width: 1000px) { .vt__stage { position: sticky; top: calc(var(--header-h) + 16px); } }
+  .vt__empty { display: grid; gap: 10px; justify-items: center; text-align: center; padding: 48px 24px; color: var(--pierre); }
+  .vt__empty .h3 { color: var(--anthracite); }
+  .vt__upload, .vt__change { position: relative; overflow: hidden; cursor: pointer; }
+  .vt__upload input, .vt__change input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .vt__canvas, .vt__result { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
+  .vt__loading { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 12px; background: rgba(20, 21, 19, 0.6); color: #fff; text-align: center; }
+  .spinner { width: 36px; height: 36px; border: 3px solid rgba(255, 255, 255, 0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .vt__steps { display: grid; border-top: 1px solid var(--anthracite); }
+  .vt__step { padding-block: 18px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+  .vt:not([data-has-photo]) .vt__step:not([data-vt-step='photo']) { opacity: 0.45; pointer-events: none; }
+  .vt__label { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.1rem; display: flex; gap: 10px; align-items: baseline; }
+  .vt__label .mono { color: var(--ocre); }
+  .small { font-size: 0.8rem; }
+  .vt__tools { gap: 8px; }
+  .chip { min-height: 40px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--chaux); font-size: 0.85rem; cursor: pointer; }
+  .vt__swatches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .vt__sw { position: relative; display: grid; gap: 4px; font-size: 0.74rem; text-align: center; cursor: pointer; padding: 3px; border: 2px solid transparent; }
+  .vt__sw input { position: absolute; opacity: 0; }
+  .vt__sw:has(input:checked) { border-color: var(--ocre); }
+  .vt__sw:has(input:focus-visible) { outline: 2px solid var(--ocre); outline-offset: 2px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); justify-self: start; }
+  .seg button { min-height: 40px; padding: 6px 16px; border: 0; background: var(--blanc); cursor: pointer; font-size: 0.88rem; }
+  .seg button[aria-pressed='true'] { background: var(--anthracite); color: var(--chaux); }
+  .vt__form, .vt__done { display: grid; gap: 12px; }
+  .row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); }
+  .field { display: grid; gap: 4px; min-width: 0; }
+  .field label { font-size: 0.88rem; font-weight: 500; }
+  .opt { color: var(--pierre); font-weight: 400; }
+  .field input, .field select { width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); background: var(--blanc); font-size: 1rem; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--ocre); outline-offset: 0; border-color: transparent; }
+  .check { display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 0.82rem; color: var(--pierre); align-items: start; }
+  .check input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--ocre); }
+  .check a { color: var(--ocre); }
+  .err { color: var(--warn); font-size: 0.9rem; }
+  .vt__form .btn--primary { justify-self: start; }
+</style>

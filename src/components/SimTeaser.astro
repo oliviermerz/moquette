@@ -1,0 +1,37 @@
+---
+/* Accroche du simulateur : la première question est cliquable et pré-remplit l'estimation. */
+import { ESTIMATE_URL } from '../config/site';
+const options = [
+  ['terrasse', 'Terrasse'], ['piscine', 'Piscine'], ['allee', 'Allée'],
+  ['entree', 'Entrée'], ['escalier', 'Escalier'], ['autre', 'Autre'],
+];
+---
+<section class="section section--dark" data-placement="sim-teaser">
+  <div class="container sim">
+    <div class="stack" style="--stack: 18px">
+      <span class="kicker">Estimation en ligne</span>
+      <h2 class="h2">Combien coûterait votre projet ?</h2>
+      <p class="lead muted">Quelques questions, deux minutes. Une première estimation, sans engagement, avant même de nous parler.</p>
+    </div>
+    <div class="sim__card">
+      <div class="sim__bars" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="sim__q">Quel espace souhaitez-vous transformer ?</p>
+      <ul class="sim__opts" role="list">
+        {options.map(([v, l]) => <li><a href={`${ESTIMATE_URL}?espace=${v}`} data-cta={`estimer-${v}`}>{l}</a></li>)}
+      </ul>
+    </div>
+  </div>
+</section>
+<style>
+  .sim { display: grid; gap: 40px; }
+  @media (min-width: 960px) { .sim { grid-template-columns: 1fr 1.1fr; align-items: center; gap: 72px; } }
+  .sim__card { background: var(--basalte-2); border: 1px solid var(--line-dark); padding: clamp(20px, 3vw, 36px); display: grid; gap: 20px; }
+  .sim__bars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .sim__bars i { height: 3px; background: var(--line-dark); }
+  .sim__bars i.on { background: var(--ocre-clair); }
+  .sim__q { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem); line-height: 1.15; }
+  .sim__opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 600px) { .sim__opts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .sim__opts a { display: flex; align-items: center; min-height: 56px; padding: 12px 16px; border: 1px solid var(--line-dark); text-decoration: none; transition: border-color .2s, background-color .2s; }
+  .sim__opts a:hover { border-color: var(--ocre-clair); background: rgba(200, 135, 87, 0.08); }
+</style>

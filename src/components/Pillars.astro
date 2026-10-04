@@ -1,0 +1,22 @@
+---
+import { pillars } from '../data/content';
+---
+<div class="pillars">
+  <dl>
+    {pillars.map((p) => (
+      <div class="pillar">
+        <dt>{p.name}{p.note && <sup>{p.note}</sup>}</dt>
+        <dd class="muted">{p.text}</dd>
+      </div>
+    ))}
+  </dl>
+  <p class="pillars__notes mono muted">¹ Selon le système posé et le support existant. ² Lorsque le support existant est compatible, après diagnostic.</p>
+</div>
+<style>
+  .pillars dl { border-top: 1px solid var(--anthracite); }
+  .pillar { display: grid; gap: 6px; padding-block: 22px; border-bottom: 1px solid var(--line); }
+  @media (min-width: 800px) { .pillar { grid-template-columns: 260px minmax(0, 1fr); gap: 24px; align-items: baseline; } }
+  .pillar dt { font-family: var(--font-display); font-stretch: 125%; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; font-size: clamp(1.1rem, 1rem + 0.6vw, 1.5rem); }
+  .pillar sup { color: var(--ocre); font-size: 0.55em; margin-left: 2px; }
+  .pillars__notes { margin-top: 16px; font-size: 0.74rem; }
+</style>

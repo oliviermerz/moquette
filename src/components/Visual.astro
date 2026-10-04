@@ -1,0 +1,86 @@
+---
+/**
+ * Visuel : affiche une photo (optimisée AVIF/WebP, tailles adaptées) quand `src` est fourni,
+ * sinon une texture minérale générée en SVG (quelques centaines d'octets), étiquetée comme visuel à produire.
+ * `label` affiche une mention discrète (ex. « Photo d'illustration »).
+ */
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { TEXTURES, type Tex } from '../data/textures';
+
+interface Props {
+  src?: ImageMetadata;
+  alt: string;
+  tex?: Tex;
+  label?: string;
+  ratio?: string; // ex. '4 / 3'
+  fill?: boolean; // remplit son parent (position absolue)
+  priority?: boolean;
+  sizes?: string;
+  position?: string; // cadrage de la photo (object-position)
+  seed?: number;
+  class?: string;
+}
+
+const { src, alt, tex = 'beige', label, ratio = '4 / 3', fill = false, priority = false, sizes = '100vw', position, seed = 3, class: cls } = Astro.props;
+const t = TEXTURES[tex];
+const id = `tx-${tex}-${seed}-${Math.random().toString(36).slice(2, 7)}`;
+const classes = ['visual', fill && 'visual--fill', cls].filter(Boolean).join(' ');
+const box = fill ? undefined : `aspect-ratio:${ratio}`;
+const widths = [480, 768, 1080, 1440, 1920].filter((w) => !src || w <= src.width);
+---
+{src ? (
+  <div class={`${classes} visual--photo`} style={box}>
+    <Picture
+      src={src}
+      alt={alt}
+      formats={['avif', 'webp']}
+      widths={widths}
+      sizes={sizes}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : 'auto'}
+      decoding={priority ? 'sync' : 'async'}
+      class="visual__img"
+      style={position ? `object-position:${position}` : undefined}
+    />
+    {label && <span class="visual__label">{label}</span>}
+  </div>
+) : (
+  <div class={`${classes} visual--ph`} style={box} role="img" aria-label={alt}>
+    <svg width="100%" height="100%" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id={id} x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency={t.freq} numOctaves={t.octaves} seed={seed} stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+          <feComponentTransfer>
+            <feFuncR type="discrete" tableValues="0 .25 .5 .62 .78 1" />
+            <feFuncG type="discrete" tableValues="0 .25 .5 .62 .78 1" />
+            <feFuncB type="discrete" tableValues="0 .25 .5 .62 .78 1" />
+          </feComponentTransfer>
+        </filter>
+        {t.grid && (
+          <pattern id={`${id}-g`} width={t.grid} height={t.grid * (tex === 'dalles' ? 0.66 : 1)} patternUnits="userSpaceOnUse">
+            <path d={`M ${t.grid} 0 L 0 0 0 ${t.grid}`} fill="none" stroke={t.joint} stroke-width="3" />
+          </pattern>
+        )}
+      </defs>
+      <rect width="100%" height="100%" fill={t.base} />
+      <rect width="100%" height="100%" filter={`url(#${id})`} opacity={t.opacity} style="mix-blend-mode:overlay" />
+      {t.grid && <rect width="100%" height="100%" fill={`url(#${id}-g)`} opacity=".8" />}
+    </svg>
+    {label && <span class="visual__label">{label}</span>}
+  </div>
+)}
+
+<style>
+  .visual { position: relative; display: block; width: 100%; max-width: 100%; overflow: hidden; background: var(--chaux-2); }
+  .visual--photo :global(picture), .visual--photo :global(img) { display: block; width: 100%; height: 100%; }
+  .visual--photo :global(img) { object-fit: cover; }
+  .visual--ph svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .visual--fill { position: absolute; inset: 0; height: 100%; }
+  .visual__label {
+    position: absolute; left: 12px; bottom: 12px; z-index: 1;
+    font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(20, 21, 19, 0.55); color: #fff; padding: 3px 7px; max-width: calc(100% - 24px);
+  }
+</style>

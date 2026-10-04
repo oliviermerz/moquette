@@ -1,0 +1,23 @@
+---
+/* Toutes les pages à la racine générées depuis des données :
+   - pages usages (/terrasse-moquette-de-pierre/…), contenu dans src/data/usages.ts
+   - pages villes (/moquette-de-pierre-lille/…), contenu dans src/content/villes/
+   Une seule route évite les conflits entre deux routes dynamiques au même niveau. */
+import UsagePage from '../components/pages/UsagePage.astro';
+import VillePage from '../components/pages/VillePage.astro';
+import { usages, type Usage } from '../data/usages';
+import { getVilleStatuses, reportVilles, type VilleStatus } from '../lib/proof';
+
+export async function getStaticPaths() {
+  await reportVilles();
+  const villes = await getVilleStatuses();
+  return [
+    ...usages.map((u) => ({ params: { slug: u.slug }, props: { kind: 'usage' as const, u } })),
+    ...villes.map((status) => ({ params: { slug: `moquette-de-pierre-${status.ville.id}` }, props: { kind: 'ville' as const, status } })),
+  ];
+}
+
+type Props = { kind: 'usage'; u: Usage } | { kind: 'ville'; status: VilleStatus };
+const props = Astro.props;
+---
+{props.kind === 'usage' ? <UsagePage u={props.u} /> : <VillePage status={props.status} />}

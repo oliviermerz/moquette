@@ -1,0 +1,29 @@
+---
+import { Picture } from 'astro:assets';
+import { LABELS } from '../config/pricing';
+import { realisationUrl, type Realisation } from '../lib/proof';
+interface Props { r: Realisation; headingLevel?: 'h2' | 'h3' }
+const { r, headingLevel = 'h3' } = Astro.props;
+const d = r.data;
+const H = headingLevel;
+const size = d.usage === 'escalier' ? `${d.marches} marches` : `${d.surface} m²`;
+---
+<article class="case" data-usage={d.usage}>
+  <a href={realisationUrl(r)} class="case__link">
+    <div class="case__img">
+      <Picture src={d.apres} alt={d.apresAlt} formats={['avif', 'webp']} widths={[480, 800, 1200]} sizes="(min-width: 1000px) 33vw, (min-width: 700px) 50vw, 100vw" />
+      <span class="case__tag">{LABELS.espace[d.usage]}</span>
+    </div>
+    <H class="case__title">{d.title}</H>
+    <p class="case__meta mono">{d.ville} · {size} · {d.finition} · {d.dureeJours} j</p>
+  </a>
+</article>
+<style>
+  .case__link { display: grid; gap: 10px; text-decoration: none; }
+  .case__img { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--chaux-2); }
+  .case__img :global(img) { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+  .case__link:hover .case__img :global(img) { transform: scale(1.03); }
+  .case__tag { position: absolute; left: 12px; top: 12px; font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(20, 21, 19, 0.7); color: #fff; padding: 4px 8px; }
+  .case__title { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.15rem; line-height: 1.2; }
+  .case__meta { color: var(--pierre); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; }
+</style>

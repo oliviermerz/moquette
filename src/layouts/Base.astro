@@ -1,0 +1,126 @@
+---
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/instrument-sans';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import '../styles/global.css';
+import archivoLatin from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import MobileBar from '../components/MobileBar.astro';
+import Breadcrumbs, { type Crumb } from '../components/Breadcrumbs.astro';
+import ConsentBanner from '../components/ConsentBanner.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+const chatEnabled = import.meta.env.PUBLIC_CHAT_ENABLED === 'true';
+import { site } from '../config/site';
+import type { Faq } from '../data/usages';
+
+interface Props {
+  title: string; // sans le nom de marque, ajouté automatiquement
+  description: string;
+  crumbs?: Crumb[];
+  faq?: Faq[];
+  schema?: Record<string, unknown>[];
+  noindex?: boolean;
+  ogImage?: string; // chemin absolu dans /public
+  hideMobileBar?: boolean;
+  fullTitle?: boolean; // utilise `title` tel quel
+}
+
+const { title, description, crumbs = [], faq, schema = [], noindex = false, ogImage, hideMobileBar = false, fullTitle = false } = Astro.props;
+const pageTitle = fullTitle ? title : `${title} | ${site.name}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const origin = Astro.site ? Astro.site.origin : '';
+
+const organization = {
+  '@type': 'Organization',
+  '@id': `${origin}/#organization`,
+  name: site.name,
+  url: `${origin}/`,
+  logo: `${origin}/favicon.svg`,
+  slogan: site.promise,
+  ...(site.phone ? { telephone: site.phone.e164 } : {}),
+  ...(site.email ? { email: site.email } : {}),
+  sameAs: [site.social.instagram, site.social.facebook].filter(Boolean),
+};
+// LocalBusiness uniquement avec une adresse réelle
+const localBusiness = site.address && {
+  '@type': 'HomeAndConstructionBusiness',
+  '@id': `${origin}/#business`,
+  name: `${site.name} ${site.zones.region}`,
+  parentOrganization: { '@id': `${origin}/#organization` },
+  url: `${origin}/`,
+  ...(site.phone ? { telephone: site.phone.e164 } : {}),
+  address: { '@type': 'PostalAddress', streetAddress: site.address.street, postalCode: site.address.postalCode, addressLocality: site.address.city, addressRegion: site.address.region, addressCountry: 'FR' },
+  areaServed: { '@type': 'AdministrativeArea', name: site.zones.region },
+};
+
+const graph: Record<string, unknown>[] = [organization];
+if (localBusiness) graph.push(localBusiness);
+if (crumbs.length) {
+  const all = [{ name: 'Accueil', href: '/' }, ...crumbs];
+  graph.push({
+    '@type': 'BreadcrumbList',
+    itemListElement: all.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: new URL(c.href, Astro.site).href })),
+  });
+}
+if (faq?.length) {
+  graph.push({
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  });
+}
+graph.push(...schema);
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c');
+---
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {(noindex || import.meta.env.PUBLIC_NOINDEX === 'true') && <meta name="robots" content="noindex, follow" />}
+    <meta name="theme-color" content="#F1EFEA" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href={archivoLatin} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content={site.locale} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={new URL(ogImage, Astro.site).href} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('consent', 'default', {
+        ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        analytics_storage: 'denied', functionality_storage: 'granted', security_storage: 'granted',
+        wait_for_update: 500
+      });
+    </script>
+    <script type="application/ld+json" set:html={jsonLd} />
+  </head>
+  <body data-gtm={site.gtmId ?? undefined} data-lead-endpoint={site.leadEndpoint ?? undefined}>
+    <a class="skip-link" href="#contenu">Aller au contenu</a>
+    <Header />
+    {crumbs.length > 0 && <Breadcrumbs items={crumbs} />}
+    <main id="contenu">
+      <slot />
+    </main>
+    <Footer />
+    {!hideMobileBar && <MobileBar />}
+    {chatEnabled && <ChatWidget />}
+    <ConsentBanner />
+    <script>
+      import '../scripts/tracking';
+    </script>
+  </body>
+</html>

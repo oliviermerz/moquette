@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import { CtaFinal, UsesGrid } from '../../components/sections';
+import { usages } from '../../data/usages';
+---
+<Base
+  title="Nos solutions en pierre naturelle résinée"
+  description="Terrasse, plage de piscine, allée, entrée, escalier, rénovation : découvrez toutes les solutions STRATE en moquette de pierre."
+  crumbs={[{ name: 'Solutions', href: '/solutions/' }]}
+>
+  <section class="section section--tight">
+    <div class="container stack" style="--stack: 20px">
+      <span class="kicker">Solutions</span>
+      <h1 class="h1" style="max-width: 16ch">Tous vos extérieurs, une même matière.</h1>
+      <p class="lead muted">Choisissez l'espace à transformer. Chaque page détaille les supports compatibles, les points d'attention et les questions les plus fréquentes.</p>
+    </div>
+  </section>
+  <section class="section section--flush-top">
+    <div class="container stack" style="--stack: 48px">
+      <UsesGrid slugs={usages.filter((u) => u.slug !== 'renovation-terrasse').map((u) => u.slug)} />
+      <a class="reno" href="/renovation-terrasse/">
+        <span class="kicker">Rénovation</span>
+        <span class="h3">Votre terrasse est fatiguée ? Rénovez-la sans forcément tout démolir.</span>
+        <span class="btn btn--link">Rénovation de terrasse</span>
+      </a>
+    </div>
+  </section>
+  <CtaFinal />
+</Base>
+<style>
+  .reno { display: grid; gap: 12px; padding: clamp(24px, 4vw, 48px); background: var(--chaux-2); text-decoration: none; max-width: 860px; }
+  .reno .btn { justify-self: start; }
+</style>

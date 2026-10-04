@@ -1,0 +1,265 @@
+---
+import Base from '../layouts/Base.astro';
+import Visual from '../components/Visual.astro';
+import BeforeAfter from '../components/BeforeAfter.astro';
+import { Coupe, Method, WhyUs, FaqList, CtaFinal, UsesGrid, Pillars, SimTeaser, Finishes } from '../components/sections';
+import { site, ESTIMATE_URL } from '../config/site';
+import { homeFaq } from '../data/content';
+import CaseCard from '../components/CaseCard.astro';
+import PhotoBand from '../components/PhotoBand.astro';
+import { photos, finishPhotos } from '../data/photos';
+import Reviews from '../components/Reviews.astro';
+import { getRealisations, getAvis, getProofStats, realisationUrl } from '../lib/proof';
+import { LABELS } from '../config/pricing';
+
+const real = await getRealisations();
+const featured = real.filter((r) => r.data.featured);
+const showcase = (featured.length >= 3 ? featured : [...featured, ...real.filter((r) => !r.data.featured)]).slice(0, 3);
+const lead = featured[0] ?? real[0];
+const avis = await getAvis();
+const stats = await getProofStats();
+
+const nf = new Intl.NumberFormat('fr-FR');
+// Les vrais chiffres remplacent les arguments génériques dès que les seuils (site.ts) sont atteints
+const proof = [
+  stats.projets ? { title: `${stats.projets} projets`, text: 'réalisés et documentés' } : { title: 'Diagnostic', text: 'du support avant tout devis' },
+  stats.m2 ? { title: `${nf.format(stats.m2)} m²`, text: 'de pierre posés' } : { title: 'Nos équipes', text: 'de poseurs spécialisés' },
+  stats.google ? { title: `${stats.google.rating.toLocaleString('fr-FR', { maximumFractionDigits: 1 })}/5 sur Google`, text: `${stats.google.count} avis clients` } : { title: '2 minutes', text: 'pour estimer votre projet' },
+  { title: '100 %', text: 'de nos chantiers documentés' },
+];
+---
+<Base
+  title="STRATE · Terrasses, piscines et allées en pierre naturelle"
+  fullTitle
+  description="Terrasses, plages de piscine, entrées et allées en moquette de pierre, conçues et posées par nos spécialistes en Hauts-de-France. Estimation en ligne."
+  faq={homeFaq}
+>
+  <!-- 1. Hero -->
+  <section class="hero">
+    <Visual src={photos.hero.src} position={photos.hero.position} alt={photos.hero.alt} fill priority sizes="100vw" label="Photo d'illustration" />
+    <div class="hero__shade" aria-hidden="true"></div>
+    <div class="container hero__in">
+      <h1 class="h-display hero__title">Transformez votre extérieur avec la pierre.</h1>
+      <p class="lead hero__sub">Terrasses, piscines, entrées et allées en pierre naturelle résinée, conçues et posées par nos spécialistes.</p>
+      <div class="btn-row" data-placement="hero">
+        <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer">Estimer mon projet <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn--outline hero__secondary" href={real.length ? '/realisations/' : '#realisations'} data-cta="realisations">Voir nos réalisations</a>
+      </div>
+      <p class="hero__micro mono">Étude personnalisée · {site.zones.region} · Devis gratuit</p>
+    </div>
+  </section>
+
+  <!-- 2. Preuve immédiate -->
+  <ul class="proof" role="list">
+    {proof.map((p) => <li><b>{p.title}</b><span>{p.text}</span></li>)}
+  </ul>
+
+  <!-- 3. Avant / après -->
+  <section class="section" id="realisations">
+    <div class="container ba-grid">
+      <div class="stack reveal" style="--stack: 18px">
+        <span class="kicker">Avant / après</span>
+        <h2 class="h2">Vous n'imaginez pas encore ce que votre extérieur peut devenir.</h2>
+        <p class="muted measure">Faites glisser. Chaque projet est photographié au même endroit, avant et après, sans retouche.</p>
+        <div><a class="btn btn--primary" href={ESTIMATE_URL} data-cta="imaginer" data-placement="avant-apres">Imaginer mon projet</a></div>
+      </div>
+      {lead
+        ? <BeforeAfter alt={lead.data.title} beforeSrc={lead.data.avant} afterSrc={lead.data.apres} meta={{ type: LABELS.espace[lead.data.usage], lieu: lead.data.ville, surface: lead.data.surface ? `${lead.data.surface} m²` : `${lead.data.marches} marches`, duree: `${lead.data.dureeJours} jours`, support: LABELS.support[lead.data.support] }} />
+        : <BeforeAfter alt="dalle fissurée recouverte de pierre naturelle" beforeSrc={photos.renovationFissures.src} afterSrc={finishPhotos.beige.src} placeholderNote meta={{ type: 'Terrasse', support: 'Dalle béton fissurée' }} />}
+    </div>
+  </section>
+
+  <!-- 4. Usages -->
+  <section class="section section--flush-top">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="kicker">Usages</span>
+        <h2 class="h2">Un sol, tous vos extérieurs.</h2>
+        <p class="muted">Terrasse, plage de piscine, allée, entrée, escalier : une même matière pour relier la maison au jardin.</p>
+      </div>
+      <UsesGrid />
+      <p class="uses-more"><a class="btn btn--link" href="/solutions/">Toutes nos solutions</a></p>
+    </div>
+  </section>
+
+  <PhotoBand photo={photos.vieChien} title="Un extérieur, c'est d'abord des moments." text="Le café du matin, les dîners qui s'éternisent, les enfants pieds nus. Nous transformons le sol pour que vous en profitiez davantage." />
+
+  <!-- 5. Proposition de valeur -->
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="kicker">Pourquoi la pierre naturelle résinée</span>
+        <h2 class="h2">La pierre, sans ses contraintes.</h2>
+      </div>
+      <Pillars />
+    </div>
+  </section>
+
+  <!-- 6. Simulateur -->
+  <SimTeaser />
+
+  <!-- 7. Galerie réalisations -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="kicker">Réalisations</span>
+        <h2 class="h2">Nos réalisations.</h2>
+        <p class="muted">Lieu, surface, support, durée réelle du chantier : chaque projet est documenté.{real.length === 0 && ' Les premières études de cas sont en cours de publication.'}</p>
+      </div>
+      {showcase.length > 0 ? (
+        <div class="cases">{showcase.map((r) => <CaseCard r={r} />)}</div>
+      ) : (
+        <div class="cases-soon">
+          <Visual src={photos.conseilCouple.src} alt={photos.conseilCouple.alt} ratio="4 / 3" sizes="(min-width: 900px) 50vw, 100vw" />
+          <div class="stack" style="--stack: 16px">
+            <p class="h3">Nos premières études de cas arrivent.</p>
+            <p class="muted">Chaque chantier est photographié au même endroit avant, pendant et après, sans retouche, puis publié avec l'accord du client : lieu, surface, support, durée réelle.</p>
+            <p class="muted">Votre projet pourrait être l'un des premiers.</p>
+            <div><a class="btn btn--primary" href="/estimer-mon-projet/" data-cta="estimer" data-placement="cases-soon">Parler de mon projet</a></div>
+          </div>
+        </div>
+      )}
+      {real.length > 0 && <p class="uses-more"><a class="btn btn--link" href="/realisations/">Toutes nos réalisations</a></p>}
+    </div>
+  </section>
+
+  <!-- 8. Technologie -->
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="kicker">Technologie</span>
+        <h2 class="h2">Ce qu'il y a sous la surface.</h2>
+        <p class="muted">Des granulats naturels, une résine haute performance et un savoir-faire de pose. La beauté se voit ; la tenue se prépare.</p>
+      </div>
+      <Coupe />
+      <p class="uses-more"><a class="btn btn--link" href="/moquette-de-pierre/">Comprendre la moquette de pierre</a></p>
+    </div>
+  </section>
+
+  <!-- 9. Méthode -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="kicker">Notre méthode</span>
+        <h2 class="h2">La Méthode 5 Strates.</h2>
+        <p class="muted">Cinq étapes, du premier échange à la réception du chantier.</p>
+      </div>
+      <Method />
+      <div class="method-photos">
+        <figure><Visual src={photos.conseilDiagnostic.src} alt={photos.conseilDiagnostic.alt} ratio="3 / 2" sizes="(min-width: 800px) 50vw, 100vw" /><figcaption class="mono">Diagnostiquer : nous venons voir votre support avant de chiffrer.</figcaption></figure>
+        <figure><Visual src={photos.artisanTaloche.src} position={photos.artisanTaloche.position} alt={photos.artisanTaloche.alt} ratio="3 / 2" sizes="(min-width: 800px) 50vw, 100vw" /><figcaption class="mono">Transformer : préparation et pose par des spécialistes.</figcaption></figure>
+      </div>
+      <p class="uses-more"><a class="btn btn--link" href="/entreprise/methode/">Découvrir la méthode</a></p>
+    </div>
+  </section>
+
+  <!-- 10. Avis clients -->
+  <section class="section section--flush-top">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="kicker">Avis clients</span>
+        <h2 class="h2">Ils ont transformé leur extérieur.</h2>
+      </div>
+      <Reviews reviews={avis} />
+    </div>
+  </section>
+
+  <!-- 11. Pourquoi nous -->
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="kicker">Pourquoi STRATE</span>
+        <h2 class="h2">Six raisons de nous confier votre extérieur.</h2>
+      </div>
+      <WhyUs />
+    </div>
+  </section>
+
+  <!-- 12. Couleurs -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="kicker">Couleurs &amp; inspiration</span>
+        <h2 class="h2">Choisissez votre minéral.</h2>
+      </div>
+      <Finishes />
+      <div class="vision-teaser">
+        <p class="h3">Voyez votre futur extérieur avant les travaux.</p>
+        <p class="muted">Une photo, quelques points pour délimiter le sol, une finition : le résultat s'affiche chez vous.</p>
+        <a class="btn btn--outline" href="/visualiser-mon-exterieur/" data-cta="visualiser" data-placement="accueil-couleurs">Visualiser mon extérieur</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. FAQ -->
+  <section class="section section--flush-top">
+    <div class="container grid-2 faq-grid">
+      <div class="section-head">
+        <span class="kicker">Questions fréquentes</span>
+        <h2 class="h2">Vos questions, nos réponses.</h2>
+        <p class="muted">Une autre question ? L'estimation en ligne nous permet de vous répondre précisément.</p>
+      </div>
+      <FaqList items={homeFaq} />
+    </div>
+  </section>
+
+  <!-- 14. Zone -->
+  <section class="section section--alt">
+    <div class="container zone">
+      <div class="stack" style="--stack: 18px">
+        <span class="kicker">Zone d'intervention</span>
+        <h2 class="h2">{site.zones.region}, et bientôt plus loin.</h2>
+        <p class="muted measure">Nous intervenons aujourd'hui dans les Hauts-de-France. Votre projet est ailleurs ? Faites-le-nous savoir : nous ouvrons de nouvelles régions selon la demande.</p>
+        <ul class="cities" role="list">{site.zones.cities.map((c) => <li>{c}</li>)}</ul>
+        <p><a class="btn btn--link" href="/zones/hauts-de-france/">Toutes nos zones d'intervention</a></p>
+      </div>
+      <Visual src={photos.lilleRueBrique.src} alt={photos.lilleRueBrique.alt} ratio="4 / 5" class="zone__photo" sizes="(min-width: 900px) 40vw, 100vw" />
+    </div>
+  </section>
+
+  <!-- 15. CTA final -->
+  <CtaFinal />
+</Base>
+
+<style>
+  .hero { position: relative; min-height: min(88svh, 860px); display: flex; align-items: flex-end; color: #fff; overflow: hidden; background: var(--basalte); }
+  .hero__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 21, 19, 0.15) 0%, rgba(20, 21, 19, 0.3) 45%, rgba(20, 21, 19, 0.86) 100%); }
+  .hero__in { position: relative; z-index: 1; padding-block: 120px clamp(40px, 6vw, 80px); display: grid; gap: 22px; }
+  .hero__title { max-width: 13ch; color: #fff; }
+  .hero__sub { color: rgba(255, 255, 255, 0.9); }
+  .hero__secondary { color: #fff; }
+  .hero__secondary:hover { background: #fff; color: var(--anthracite); border-color: #fff; }
+  .hero__micro { color: rgba(255, 255, 255, 0.82); letter-spacing: 0.08em; font-size: 0.78rem; }
+  .hero :global(.visual__label) { top: 12px; right: 12px; left: auto; bottom: auto; z-index: 2; }
+
+  .proof { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: var(--blanc); border-bottom: 1px solid var(--line); }
+  @media (min-width: 900px) { .proof { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .proof li { display: grid; gap: 2px; padding: 18px var(--gutter); border-right: 1px solid var(--line); border-top: 1px solid var(--line); }
+  @media (min-width: 900px) { .proof li { border-top: 0; padding-block: 24px; } }
+  .proof b { font-family: var(--font-display); font-stretch: 116%; font-weight: 500; font-size: 1.1rem; }
+  .proof span { color: var(--pierre); font-size: 0.88rem; }
+
+  .ba-grid { display: grid; gap: 36px; }
+  @media (min-width: 960px) { .ba-grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr); align-items: center; gap: 64px; } }
+  .uses-more { margin-top: 28px; }
+  .vision-teaser { margin-top: 40px; padding: clamp(24px, 4vw, 40px); border: 1px solid var(--anthracite); display: grid; gap: 12px; justify-items: start; max-width: 760px; }
+
+  .cases { display: grid; gap: 24px; }
+  @media (min-width: 800px) { .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .cases li { display: grid; gap: 12px; }
+  .cases-soon { display: grid; gap: 32px; align-items: center; }
+  @media (min-width: 900px) { .cases-soon { grid-template-columns: 1.1fr 1fr; gap: 64px; } }
+  .cases b { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.15rem; }
+
+  .reviews-empty { border: 1px dashed var(--gres); padding: clamp(24px, 4vw, 48px); display: grid; gap: 8px; max-width: 760px; }
+  .faq-grid { align-items: start; }
+  .zone { display: grid; gap: 40px; }
+  @media (min-width: 900px) { .zone { grid-template-columns: 1.3fr 1fr; align-items: center; } }
+  :global(.zone__photo) { max-width: 460px; justify-self: end; }
+  .method-photos { display: grid; gap: 16px; margin-top: 32px; }
+  @media (min-width: 800px) { .method-photos { grid-template-columns: 1fr 1fr; } }
+  .method-photos figure { margin: 0; display: grid; gap: 8px; }
+  .method-photos figcaption { color: var(--pierre); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .cities { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .cities li { border: 1px solid var(--line); padding: 6px 12px; font-size: 0.9rem; border-radius: 999px; background: var(--chaux); }
+</style>

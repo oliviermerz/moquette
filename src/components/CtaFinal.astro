@@ -1,0 +1,32 @@
+---
+import { site, ESTIMATE_URL } from '../config/site';
+import Visual from './Visual.astro';
+import { photos } from '../data/photos';
+interface Props { title?: string; text?: string; placement?: string }
+const {
+  title = "Votre extérieur mérite mieux qu'un simple sol.",
+  text = 'Décrivez-nous votre projet en deux minutes. Nous revenons vers vous avec une première étude.',
+  placement = 'cta-final',
+} = Astro.props;
+---
+<section class="section section--dark cta-final" data-placement={placement}>
+  <Visual src={photos.terrasseSoir.src} alt="" fill sizes="100vw" class="cta-final__bg" />
+  <div class="cta-final__shade" aria-hidden="true"></div>
+  <div class="container stack cta-final__in" style="--stack: 24px">
+    <span class="kicker">Votre projet</span>
+    <h2 class="h-display cta-final__title">{title}</h2>
+    <p class="lead muted">{text}{site.callbackDelay && ` Un conseiller vous recontacte ${site.callbackDelay}.`}</p>
+    <div class="btn-row">
+      <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer">Estimer mon projet <span class="arrow" aria-hidden="true">→</span></a>
+      {site.phone
+        ? <a class="btn btn--outline" href={`tel:${site.phone.e164}`}>Parler à un expert · {site.phone.display}</a>
+        : <a class="btn btn--outline" href="/realisations/" data-cta="realisations">Découvrir nos réalisations</a>}
+    </div>
+  </div>
+</section>
+<style>
+  .cta-final { position: relative; overflow: hidden; }
+  .cta-final__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 21, 19, 0.92) 0%, rgba(20, 21, 19, 0.72) 55%, rgba(20, 21, 19, 0.5) 100%); }
+  .cta-final__in { position: relative; z-index: 1; }
+  .cta-final__title { max-width: 16ch; }
+</style>

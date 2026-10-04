@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../config/site';
+---
+<Base title="Politique de confidentialité" description="Comment STRATE collecte, utilise et protège vos données personnelles." crumbs={[{ name: 'Confidentialité', href: '/confidentialite/' }]}>
+  <section class="section section--tight">
+    <div class="container prose">
+      <h1 class="h1">Politique de confidentialité</h1>
+      <p class="muted">Version de lancement, à faire valider par votre conseil juridique avant mise en ligne.</p>
+
+      <h2>Responsable du traitement</h2>
+      <p>{site.legal.company ?? <span class="todo">raison sociale</span>}, joignable à {site.email ?? <span class="todo">email de contact RGPD</span>}.</p>
+
+      <h2>Données collectées et finalités</h2>
+      <ul>
+        <li><b>Demande d'étude ou d'estimation</b> : type de projet, surface, code postal, message, prénom, nom, email, téléphone. Finalité : étudier votre projet et vous recontacter. Base légale : votre consentement et les mesures précontractuelles prises à votre demande.</li>
+        <li><b>Origine de votre visite</b> (source, campagne) : rattacher votre demande au canal qui vous a amené, pour piloter nos actions commerciales.</li>
+        <li><b>Mesure d'audience et publicité</b> : uniquement avec votre accord, via le bandeau de consentement.</li>
+      </ul>
+
+      <h2>Assistant conversationnel</h2>
+      <p>Les messages échangés avec l'assistant du site sont transmis à notre prestataire d'intelligence artificielle (Anthropic) pour générer les réponses. Ils ne sont pas conservés sur notre site : la conversation reste dans votre navigateur le temps de votre visite. Si vous acceptez qu'un conseiller vous recontacte, vos coordonnées et un résumé de l'échange sont enregistrés dans notre outil de gestion de la relation client.</p>
+
+      <h2>Visualisation de votre extérieur (STRATE Vision)</h2>
+      <p>Votre photo est réduite et débarrassée de ses métadonnées (dont la position GPS) dans votre navigateur. Pour le rendu réaliste, et uniquement avec votre accord, elle est transmise à notre prestataire d'intelligence artificielle (OpenAI) pour créer la simulation, puis jointe aux emails envoyés à vous-même et à notre équipe. Elle n'est pas conservée sur notre site. Les prestataires conservent les données selon leurs propres conditions : <span class="todo">durées à vérifier dans les contrats</span>.</p>
+
+      <h2>Destinataires</h2>
+      <p>Les équipes commerciales et techniques de STRATE, et nos sous-traitants techniques (hébergement, outil de gestion de la relation client, envoi d'emails et de SMS) : <span class="todo">liste des sous-traitants</span>. Vos données ne sont ni vendues ni cédées.</p>
+
+      <h2>Durée de conservation</h2>
+      <p>Prospects : <span class="todo">durée, ex. 3 ans après le dernier contact</span>. Clients : durée de la relation contractuelle, puis durées légales de conservation.</p>
+
+      <h2>Cookies et traceurs</h2>
+      <p>Aucun outil de mesure d'audience ou de publicité n'est chargé sans votre accord. Votre choix est conservé six mois. Vous pouvez le modifier à tout moment :</p>
+      <p><button type="button" class="btn btn--outline" data-consent-open>Gérer mes préférences</button></p>
+
+      <h2>Vos droits</h2>
+      <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, d'opposition, de limitation et de portabilité de vos données. Écrivez-nous à {site.email ?? <span class="todo">email de contact RGPD</span>}. Vous pouvez aussi introduire une réclamation auprès de la CNIL (cnil.fr).</p>
+    </div>
+  </section>
+</Base>

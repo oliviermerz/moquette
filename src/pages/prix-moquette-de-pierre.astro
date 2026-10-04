@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro';
+import { FaqList, CtaFinal } from '../components/sections';
+import { site, ESTIMATE_URL } from '../config/site';
+import Visual from '../components/Visual.astro';
+import { photos } from '../data/photos';
+import type { Faq } from '../data/usages';
+
+const factors = [
+  { name: 'La surface', text: "Plus la surface est grande, plus le coût au mètre carré baisse : l'installation du chantier et les finitions se répartissent sur davantage de mètres." },
+  { name: 'Le support', text: "Béton, carrelage, dallage, enrobé ou terre : chaque support demande une préparation et un primaire différents. Créer un support coûte plus cher que d'en préparer un." },
+  { name: 'Sa préparation', text: "Nettoyage, reprise des fissures, dépose des carreaux creux, ragréage, correction des pentes : c'est souvent le poste qui fait le plus varier le prix." },
+  { name: 'La géométrie', text: 'Une terrasse rectangulaire se pose plus vite qu’une surface en courbes, avec des angles, des regards ou des obstacles.' },
+  { name: 'Les bordures', text: 'Bordures de finition, joints avec la pelouse, raccords avec les seuils : chaque mètre linéaire compte.' },
+  { name: 'Les escaliers', text: "Ils se chiffrent à la marche : les nez de marche et les finitions prennent l'essentiel du temps de pose." },
+  { name: 'Le granulat', text: 'Marbre, quartz, mélanges : les granulats n’ont pas tous le même prix, ni la même consommation au mètre carré.' },
+  { name: "L'accessibilité", text: "Un chantier accessible directement depuis la rue est plus simple qu'une cour fermée, un étage ou un accès étroit." },
+];
+const quote = [
+  ['Préparation du support', 'Nettoyage, réparations, dépose éventuelle'],
+  ['Primaire / couche technique', 'Selon la nature du support'],
+  ['Fourniture', 'Granulats et résine, selon la finition choisie'],
+  ['Pose', 'Main-d’œuvre, en mètres carrés'],
+  ['Finitions', 'Bordures, seuils, nez de marche, joints de dilatation'],
+  ['Chantier', 'Accès, protections, évacuation éventuelle'],
+];
+const faq: Faq[] = [
+  { q: 'Pourquoi les prix varient-ils autant sur internet ?', a: "Parce qu'on compare souvent des choses différentes : un kit à poser soi-même, une fourniture seule, ou une pose complète avec préparation du support et garanties. Comparez toujours des devis à prestations équivalentes." },
+  { q: 'Le devis est-il gratuit ?', a: 'Oui. Il est établi après la visite technique, poste par poste.' },
+  { q: "Pourquoi ne pas donner un prix au m² tout de suite ?", a: "Parce que la préparation du support peut faire varier fortement le total. Une estimation en ligne vous donne une première idée ; le devis, lui, s'appuie sur ce que nous avons constaté chez vous." },
+  { q: 'Qu’est-ce qui peut faire grimper la facture ?', a: "La création d'un support (sur terre ou gravier), une démolition partielle, la correction des pentes, les escaliers et les accès difficiles. Nous les identifions avant le devis, pas pendant le chantier." },
+];
+---
+<Base
+  title="Prix d'une moquette de pierre"
+  description="Combien coûte une moquette de pierre ? Les 8 facteurs qui font le prix, ce que contient un devis détaillé et comment estimer votre projet en 2 minutes."
+  crumbs={[{ name: 'Prix', href: '/prix-moquette-de-pierre/' }]}
+  faq={faq}
+>
+  <section class="section section--tight">
+    <div class="container grid-2">
+    <div class="stack" style="--stack: 22px">
+      <span class="kicker">Prix</span>
+      <h1 class="h1" style="max-width: 18ch">Combien coûte une moquette de pierre ?</h1>
+      <p class="lead muted">La réponse honnête : cela dépend surtout de votre support. Voici exactement ce qui fait le prix, pour que vous sachiez quoi comparer.</p>
+      {site.pricing.fromPerM2 && (
+        <p class="from"><span class="kicker">Pose comprise</span><b>À partir de {site.pricing.fromPerM2} €/m²</b><span class="muted">Prix indicatif TTC, sur support compatible. Le devis fait foi.</span></p>
+      )}
+      <div class="btn-row" data-placement="prix-hero">
+        <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer">Estimer mon projet en 2 minutes <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+    <Visual src={photos.conseilCouple.src} alt={photos.conseilCouple.alt} ratio="4 / 5" priority sizes="(min-width: 900px) 45vw, 100vw" />
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Les facteurs</span>
+        <h2 class="h2">Huit éléments font le prix.</h2>
+      </div>
+      <ol class="grid-cards factors" role="list">
+        {factors.map((f, i) => (
+          <li><span class="mono num">{String(i + 1).padStart(2, '0')}</span><h3 class="h3">{f.name}</h3><p class="muted">{f.text}</p></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid-2 quote-grid">
+      <div class="section-head">
+        <span class="kicker">Notre devis</span>
+        <h2 class="h2">Un devis détaillé, poste par poste.</h2>
+        <p class="muted">Vous savez ce que vous payez, et vous pouvez comparer ligne à ligne avec d'autres propositions.</p>
+      </div>
+      <table class="quote">
+        <caption class="sr-only">Les postes d'un devis STRATE</caption>
+        <tbody>{quote.map(([a, b]) => <tr><th scope="row">{a}</th><td class="muted">{b}</td></tr>)}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section section--dark">
+    <div class="container grid-2">
+      <div class="section-head">
+        <span class="kicker">Avant de comparer</span>
+        <h2 class="h2">Trois questions à poser à chaque devis.</h2>
+      </div>
+      <ul class="list-dash" role="list">
+        <li><b>Le support a-t-il été vérifié sur place ?</b> Un prix donné sans visite ne peut pas inclure la bonne préparation.</li>
+        <li><b>Quelle résine est utilisée ?</b> Sa tenue aux UV conditionne l'aspect dans le temps.</li>
+        <li><b>Quelles garanties, pour quoi ?</b> Demandez ce qui est couvert, combien de temps, et par quelle assurance.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid-2 faq-grid">
+      <div class="section-head">
+        <span class="kicker">Questions fréquentes</span>
+        <h2 class="h2">Le prix, en clair.</h2>
+      </div>
+      <FaqList items={faq} />
+    </div>
+  </section>
+
+  <CtaFinal title="Estimez votre projet en 2 minutes." placement="prix-cta-final" />
+</Base>
+<style>
+  .from { display: grid; gap: 4px; border-left: 2px solid var(--ocre); padding-left: 16px; }
+  .from b { font-family: var(--font-display); font-stretch: 120%; font-weight: 600; font-size: var(--fs-h2); line-height: 1.05; }
+  .factors li { display: grid; gap: 10px; align-content: start; }
+  .factors .num { color: var(--ocre); }
+  .quote-grid { align-items: start; }
+  .quote { width: 100%; border-collapse: collapse; border-top: 1px solid var(--anthracite); }
+  .quote th, .quote td { text-align: left; padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .quote th { font-weight: 500; width: 45%; }
+  .faq-grid { align-items: start; }
+</style>

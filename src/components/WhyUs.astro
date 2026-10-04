@@ -1,0 +1,16 @@
+---
+import { whyUs } from '../data/content';
+---
+<ul class="grid-cards why" role="list">
+  {whyUs.map((w) => (
+    <li class="why__item">
+      <span class="mono why__n">{w.n}</span>
+      <h3 class="h3">{w.title}</h3>
+      <p class="muted">{w.text}</p>
+    </li>
+  ))}
+</ul>
+<style>
+  .why__item { display: grid; gap: 10px; align-content: start; }
+  .why__n { color: var(--ocre); }
+</style>

@@ -1,0 +1,31 @@
+---
+import { method } from '../data/content';
+interface Props { detailed?: boolean }
+const { detailed = false } = Astro.props;
+---
+<ol class:list={['method', { 'method--detailed': detailed }]} role="list">
+  {method.map((s) => (
+    <li class="method__step">
+      <span class="method__n mono">{s.n}</span>
+      <h3 class="method__name">{s.name}</h3>
+      <p class="muted">{detailed ? s.detail : s.short}</p>
+      {detailed && <p class="method__deliv"><span class="kicker">Ce que vous obtenez</span>{s.deliverable}</p>}
+    </li>
+  ))}
+</ol>
+<style>
+  .method { display: grid; border-top: 1px solid var(--anthracite); }
+  .method__step { display: grid; gap: 8px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+  @media (min-width: 1000px) {
+    .method:not(.method--detailed) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .method:not(.method--detailed) .method__step { border-bottom: 0; padding-right: 24px; }
+    .method--detailed .method__step { grid-template-columns: 80px minmax(0, 0.8fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start; padding-block: 32px; }
+  }
+  .method__n { color: var(--ocre); }
+  .method__name { font-stretch: 125%; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-size: 1rem; }
+  .method--detailed .method__name { font-size: 1.2rem; }
+  .method__deliv { display: grid; gap: 4px; font-size: 0.95rem; }
+  .section--dark .method { border-top-color: var(--text-on-dark); }
+  .section--dark .method__step { border-bottom-color: var(--line-dark); }
+  .section--dark .method__n { color: var(--ocre-clair); }
+</style>

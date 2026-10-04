@@ -1,0 +1,109 @@
+---
+/**
+ * Comparateur avant/après. Glisser au doigt ou à la souris, flèches au clavier.
+ * `touch-action: pan-y` : le défilement vertical de la page reste libre sur mobile.
+ */
+import type { ImageMetadata } from 'astro';
+import Visual from './Visual.astro';
+import type { Tex } from '../data/textures';
+
+interface Meta { type: string; lieu?: string | null; surface?: string | null; duree?: string | null; support?: string | null }
+interface Props {
+  beforeSrc?: ImageMetadata; afterSrc?: ImageMetadata;
+  beforeTex?: Tex; afterTex?: Tex;
+  alt: string;
+  meta?: Meta;
+  placeholderNote?: boolean;
+  seed?: number;
+}
+const { beforeSrc, afterSrc, beforeTex = 'beton', afterTex = 'beige', alt, meta, placeholderNote = !afterSrc, seed = 4 } = Astro.props;
+const note = placeholderNote === true ? 'Visuel de principe · remplacé par les photos réelles du chantier' : null;
+---
+<figure class="ba-fig">
+  <div class="ba" data-ba tabindex="0" role="slider" aria-label={`Comparer avant et après : ${alt}`} aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50 % avant">
+    <Visual src={afterSrc} tex={afterTex} alt={`Après : ${alt}`} fill seed={seed} sizes="(min-width: 900px) 60vw, 100vw" />
+    <div class="ba__before"><Visual src={beforeSrc} tex={beforeTex} alt={`Avant : ${alt}`} fill seed={seed + 7} sizes="(min-width: 900px) 60vw, 100vw" /></div>
+    <span class="ba__tag ba__tag--b">Avant</span>
+    <span class="ba__tag ba__tag--a">Après</span>
+    <span class="ba__handle" aria-hidden="true"></span>
+    {note && <span class="ba__note">{note}</span>}
+  </div>
+  {meta && (
+    <figcaption class="ba__meta">
+      <span>{meta.type}</span>
+      <span>{meta.lieu ?? 'Lieu à documenter'}</span>
+      <span>{meta.surface ?? '— m²'}</span>
+      {meta.support && <span>Support : {meta.support}</span>}
+      <span>{meta.duree ?? 'Durée à documenter'}</span>
+    </figcaption>
+  )}
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-ba]').forEach((el) => {
+    let pos = 50;
+    let dragging = false;
+    const set = (p: number) => {
+      pos = Math.max(0, Math.min(100, p));
+      el.style.setProperty('--pos', `${pos}%`);
+      el.setAttribute('aria-valuenow', String(Math.round(pos)));
+      el.setAttribute('aria-valuetext', `${Math.round(pos)} % avant`);
+    };
+    const fromEvent = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      set(((e.clientX - r.left) / r.width) * 100);
+    };
+    el.addEventListener('pointerdown', (e) => { dragging = true; el.setPointerCapture?.(e.pointerId); fromEvent(e); });
+    el.addEventListener('pointermove', (e) => { if (dragging) fromEvent(e); });
+    const stop = () => { dragging = false; };
+    el.addEventListener('pointerup', stop);
+    el.addEventListener('pointercancel', stop);
+    el.addEventListener('keydown', (e) => {
+      const step = e.shiftKey ? 20 : 5;
+      if (e.key === 'ArrowLeft') { set(pos - step); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { set(pos + step); e.preventDefault(); }
+      if (e.key === 'Home') { set(0); e.preventDefault(); }
+      if (e.key === 'End') { set(100); e.preventDefault(); }
+    });
+    // Invitation discrète au premier affichage
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (!entries[0].isIntersecting) return;
+        io.disconnect();
+        let t0 = 0;
+        const tick = (t: number) => {
+          t0 ||= t;
+          const k = Math.min(1, (t - t0) / 1300);
+          if (!dragging) set(50 + Math.sin(k * Math.PI * 2) * 16 * (1 - k));
+          if (k < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }, { threshold: 0.6 });
+      io.observe(el);
+    }
+  });
+</script>
+
+<style>
+  .ba-fig { display: grid; gap: 12px; }
+  .ba {
+    --pos: 50%;
+    position: relative; aspect-ratio: 3 / 2; max-width: 100%; overflow: hidden;
+    touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: ew-resize;
+    background: var(--chaux-2);
+  }
+  .ba__before { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+  .ba__handle { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; background: #fff; pointer-events: none; }
+  .ba__handle::after {
+    content: ''; position: absolute; top: 50%; left: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M20 18l-6 6 6 6M28 18l6 6-6 6' fill='none' stroke='%2322231F' stroke-width='1.6'/%3E%3C/svg%3E") center / 48px no-repeat;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.3);
+  }
+  .ba:focus-visible { outline: 3px solid var(--ocre); outline-offset: 3px; }
+  .ba__tag { position: absolute; top: 14px; z-index: 2; pointer-events: none; font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; background: rgba(20, 21, 19, 0.7); padding: 5px 9px; }
+  .ba__tag--b { left: 14px; }
+  .ba__tag--a { right: 14px; }
+  .ba__note { position: absolute; z-index: 2; left: 14px; right: 14px; bottom: 12px; pointer-events: none; font-family: var(--font-mono); font-size: 0.62rem; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+  .ba__meta { display: flex; flex-wrap: wrap; gap: 4px 18px; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pierre); }
+  .ba__meta span:first-child { color: var(--anthracite); }
+</style>

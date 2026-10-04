@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+import { usages } from '../data/usages';
+import { getVilleStatuses, getRealisations, villeUrl, realisationUrl } from '../lib/proof';
+const villes = (await getVilleStatuses()).filter((s) => s.indexable);
+const real = await getRealisations();
+const groups = [
+  { title: 'Solutions', links: [{ href: '/solutions/', label: 'Toutes les solutions' }, ...usages.map((u) => ({ href: `/${u.slug}/`, label: u.label }))] },
+  { title: 'Comprendre', links: [
+    { href: '/moquette-de-pierre/', label: 'La moquette de pierre' },
+    { href: '/prix-moquette-de-pierre/', label: 'Prix' },
+    { href: '/moquette-de-pierre/comparatif/', label: 'Comparatif des sols extérieurs' },
+    { href: '/conseils/', label: 'Conseils' },
+  ] },
+  { title: 'STRATE', links: [
+    { href: '/entreprise/', label: "L'entreprise" },
+    { href: '/entreprise/methode/', label: 'La Méthode 5 Strates' },
+    { href: '/realisations/', label: 'Réalisations' },
+    { href: '/estimer-mon-projet/', label: 'Estimer mon projet' },
+    { href: '/visualiser-mon-exterieur/', label: 'Visualiser mon extérieur' },
+  ] },
+  { title: 'Zones', links: [{ href: '/zones/hauts-de-france/', label: 'Hauts-de-France' }, ...villes.map((s) => ({ href: villeUrl(s.ville), label: s.ville.data.name }))] },
+  ...(real.length ? [{ title: 'Réalisations', links: real.map((r) => ({ href: realisationUrl(r), label: r.data.title })) }] : []),
+  { title: 'Informations', links: [
+    { href: '/mentions-legales/', label: 'Mentions légales' },
+    { href: '/confidentialite/', label: 'Politique de confidentialité' },
+  ] },
+];
+---
+<Base title="Plan du site" description="Toutes les pages du site STRATE." crumbs={[{ name: 'Plan du site', href: '/plan-du-site/' }]}>
+  <section class="section section--tight">
+    <div class="container stack" style="--stack: 40px">
+      <h1 class="h1">Plan du site</h1>
+      <div class="plan">
+        {groups.map((g) => (
+          <div><h2 class="kicker">{g.title}</h2><ul role="list">{g.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul></div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+<style>
+  .plan { display: grid; gap: 32px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+  .plan ul { display: grid; gap: 8px; margin-top: 14px; }
+</style>

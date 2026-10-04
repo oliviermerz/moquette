@@ -1,0 +1,22 @@
+---
+import Visual from './Visual.astro';
+import { FINISHES } from '../data/textures';
+import { finishPhotos } from '../data/photos';
+---
+<ul class="fin" role="list">
+  {FINISHES.map((f, i) => (
+    <li class="fin__item">
+      <Visual src={finishPhotos[f.tex]?.src} tex={f.tex} alt={finishPhotos[f.tex]?.alt ?? `Granulats ${f.name}`} ratio="1 / 1" seed={40 + i} sizes="(min-width: 900px) 25vw, 50vw" />
+      <b>{f.name}</b>
+      <span class="muted">{f.note}</span>
+    </li>
+  ))}
+</ul>
+<p class="mono muted fin__note">Nuancier indicatif. Les finitions définitives sont présentées en échantillons réels lors de la visite.</p>
+<style>
+  .fin { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 900px) { .fin { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; } }
+  .fin__item { display: grid; gap: 6px; align-content: start; font-size: 0.92rem; }
+  .fin__item b { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.05rem; margin-top: 6px; }
+  .fin__note { margin-top: 20px; font-size: 0.74rem; }
+</style>

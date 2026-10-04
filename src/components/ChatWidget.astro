@@ -1,0 +1,177 @@
+---
+/* Assistant conversationnel. Activé au build par PUBLIC_CHAT_ENABLED=true (nécessite ANTHROPIC_API_KEY côté serveur). */
+const suggestions = ['Combien ça coûte ?', 'Peut-on poser sur du carrelage ?', 'Est-ce vraiment drainant ?', 'Intervenez-vous chez moi ?'];
+---
+<div class="chat" data-chat>
+  <button type="button" class="chat__open" aria-expanded="false" aria-controls="chat-panel" data-chat-open>
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /></svg>
+    <span>Une question ?</span>
+  </button>
+  <section class="chat__panel" id="chat-panel" role="dialog" aria-label="Assistant STRATE" hidden data-chat-panel>
+    <header class="chat__head">
+      <div><p class="chat__title">Assistant STRATE</p><p class="chat__sub">Réponses automatiques · un conseiller prend le relais</p></div>
+      <button type="button" class="chat__close" aria-label="Fermer l'assistant" data-chat-close>×</button>
+    </header>
+    <div class="chat__log" data-chat-log aria-live="polite">
+      <div class="msg msg--bot"><p>Bonjour. Je réponds à vos questions sur la moquette de pierre et vos projets d'extérieur. Que souhaitez-vous savoir ?</p></div>
+    </div>
+    <div class="chat__chips" data-chat-chips>
+      {suggestions.map((s) => <button type="button" class="chip" data-chat-suggest>{s}</button>)}
+    </div>
+    <form class="chat__form" data-chat-form>
+      <label for="chat-input" class="sr-only">Votre message</label>
+      <textarea id="chat-input" rows="1" maxlength="1500" placeholder="Votre question…" data-chat-input></textarea>
+      <button type="submit" class="chat__send" aria-label="Envoyer" data-chat-send>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
+      </button>
+    </form>
+    <p class="chat__legal">Assistant automatique, il peut se tromper. Vos messages servent à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a></p>
+  </section>
+</div>
+
+<script>
+  import { track, getAttribution } from '../scripts/tracking';
+
+  type Msg = { role: 'user' | 'assistant'; content: string };
+  const KEY = 'strate-chat-v1';
+  const root = document.querySelector<HTMLElement>('[data-chat]')!;
+  const openBtn = root.querySelector<HTMLButtonElement>('[data-chat-open]')!;
+  const panel = root.querySelector<HTMLElement>('[data-chat-panel]')!;
+  const log = root.querySelector<HTMLElement>('[data-chat-log]')!;
+  const form = root.querySelector<HTMLFormElement>('[data-chat-form]')!;
+  const input = root.querySelector<HTMLTextAreaElement>('[data-chat-input]')!;
+  const send = root.querySelector<HTMLButtonElement>('[data-chat-send]')!;
+  const chips = root.querySelector<HTMLElement>('[data-chat-chips]')!;
+
+  let state: { messages: Msg[]; lead: boolean } = { messages: [], lead: false };
+  try { state = JSON.parse(sessionStorage.getItem(KEY) || '') ?? state; } catch { /* nouvelle conversation */ }
+  const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch { /* ignoré */ } };
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  /** Texte simple : paragraphes, listes à tirets, gras **…**, chemins du site cliquables */
+  function format(text: string) {
+    return esc(text)
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/(^|[\s(])(\/[a-z0-9-]+(?:\/[a-z0-9-]+)*\/)/g, '$1<a href="$2">$2</a>')
+      .split(/\n{2,}/)
+      .map((block) => /^- /m.test(block)
+        ? `<ul>${block.split('\n').map((l) => l.replace(/^- /, '')).filter(Boolean).map((l) => `<li>${l}</li>`).join('')}</ul>`
+        : `<p>${block.replace(/\n/g, '<br>')}</p>`)
+      .join('');
+  }
+  function bubble(role: Msg['role'], html: string) {
+    const div = document.createElement('div');
+    div.className = `msg msg--${role === 'user' ? 'user' : 'bot'}`;
+    div.innerHTML = html;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+    return div;
+  }
+  function restore() {
+    for (const m of state.messages) bubble(m.role, m.role === 'user' ? `<p>${esc(m.content)}</p>` : format(m.content));
+    chips.hidden = state.messages.length > 0;
+  }
+
+  function setOpen(open: boolean) {
+    panel.hidden = !open;
+    openBtn.setAttribute('aria-expanded', String(open));
+    root.toggleAttribute('data-open', open);
+    if (open) { input.focus(); track('chat_open', { page: location.pathname }); }
+  }
+  openBtn.addEventListener('click', () => setOpen(!root.hasAttribute('data-open')));
+  root.querySelector('[data-chat-close]')!.addEventListener('click', () => { setOpen(false); openBtn.focus(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) { setOpen(false); openBtn.focus(); } });
+  input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 120)}px`; });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+  chips.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-chat-suggest]');
+    if (b) { input.value = b.textContent ?? ''; form.requestSubmit(); }
+  });
+
+  let busy = false;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text || busy) return;
+    busy = true; send.disabled = true; chips.hidden = true;
+    input.value = ''; input.style.height = 'auto';
+    if (state.messages.length === 0) track('chat_start', { page: location.pathname });
+    state.messages.push({ role: 'user', content: text });
+    save();
+    bubble('user', `<p>${esc(text)}</p>`);
+    const out = bubble('assistant', '<p class="typing"><span></span><span></span><span></span></p>');
+    let answer = '';
+    try {
+      const res = await fetch('/api/chat/', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: state.messages, attribution: getAttribution(), page: location.pathname, leadRecorded: state.lead }),
+      });
+      if (!res.ok || !res.body) throw new Error(res.status === 429 ? 'trop' : 'indispo');
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let i;
+        while ((i = buf.indexOf('\n\n')) >= 0) {
+          const raw = buf.slice(0, i); buf = buf.slice(i + 2);
+          const ev = /^event: (.+)$/m.exec(raw)?.[1];
+          const data = JSON.parse(/^data: (.+)$/m.exec(raw)?.[1] ?? '{}');
+          if (ev === 'delta') { answer += data.text; out.innerHTML = format(answer); log.scrollTop = log.scrollHeight; }
+          else if (ev === 'tool' && !answer) out.innerHTML = `<p class="tool">${esc(data.label)}</p>`;
+          else if (ev === 'tool') answer += '\n\n';
+          else if (ev === 'lead') { state.lead = true; track('generate_lead', { form_id: 'assistant' }); }
+          else if (ev === 'error') { answer += (answer ? '\n\n' : '') + data.message; out.innerHTML = format(answer); }
+        }
+      }
+    } catch (err) {
+      answer = (err as Error).message === 'trop'
+        ? 'Vous avez envoyé beaucoup de messages. Réessayez dans un moment, ou estimez votre projet sur /estimer-mon-projet/.'
+        : "L'assistant n'est pas disponible pour le moment. Vous pouvez estimer votre projet sur /estimer-mon-projet/.";
+      out.innerHTML = format(answer);
+    }
+    if (answer.trim()) { state.messages.push({ role: 'assistant', content: answer.trim() }); save(); }
+    busy = false; send.disabled = false; input.focus();
+  });
+
+  restore();
+</script>
+
+<style>
+  .chat { position: fixed; z-index: 45; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  @media (min-width: 900px) { .chat { right: 24px; bottom: 24px; } }
+  .chat__open { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 16px; border: 1px solid var(--anthracite); border-radius: 999px; background: var(--anthracite); color: var(--chaux); font-size: 0.9rem; cursor: pointer; box-shadow: 0 10px 30px -10px rgba(0,0,0,.4); }
+  .chat[data-open] .chat__open { display: none; }
+  @media (max-width: 899px) { .chat__open span { display: none; } .chat__open { padding: 12px; } }
+  .chat__panel { width: min(400px, calc(100vw - 32px)); height: min(600px, calc(100svh - 120px)); display: flex; flex-direction: column; background: var(--blanc); border: 1px solid var(--line); box-shadow: 0 30px 60px -20px rgba(0,0,0,.35); }
+  .chat__panel[hidden] { display: none; }
+  .chat__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; background: var(--anthracite); color: var(--chaux); }
+  .chat__title { font-family: var(--font-display); font-stretch: 116%; font-weight: 600; letter-spacing: .04em; }
+  .chat__sub { font-size: .74rem; color: var(--muted-on-dark); }
+  .chat__close { width: 44px; height: 44px; border: 0; background: none; color: inherit; font-size: 1.6rem; cursor: pointer; }
+  .chat__log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
+  .chat__log :global(.msg) { max-width: 88%; padding: 10px 14px; font-size: .94rem; line-height: 1.5; display: grid; gap: 8px; }
+  .chat__log :global(.msg ul) { padding-left: 18px; margin: 0; display: grid; gap: 4px; }
+  .chat__log :global(.msg a) { color: var(--ocre); }
+  .chat__log :global(.msg--bot) { align-self: flex-start; background: var(--chaux-2); }
+  .chat__log :global(.msg--user) { align-self: flex-end; background: var(--anthracite); color: var(--chaux); }
+  .chat__log :global(.tool) { color: var(--pierre); font-style: italic; }
+  .chat__log :global(.typing) { display: flex; gap: 4px; padding: 4px 0; }
+  .chat__log :global(.typing span) { width: 6px; height: 6px; border-radius: 50%; background: var(--pierre); animation: blink 1.2s infinite; }
+  .chat__log :global(.typing span:nth-child(2)) { animation-delay: .2s; }
+  .chat__log :global(.typing span:nth-child(3)) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+  .chat__chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 10px; }
+  .chat__chips[hidden] { display: none; }
+  .chip { min-height: 36px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--chaux); font-size: .82rem; cursor: pointer; }
+  .chip:hover { border-color: var(--anthracite); }
+  .chat__form { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); align-items: flex-end; }
+  .chat__form textarea { flex: 1; resize: none; min-height: 44px; max-height: 120px; padding: 10px 12px; border: 1px solid var(--line); background: var(--chaux); font-size: 1rem; line-height: 1.4; }
+  .chat__form textarea:focus { outline: 2px solid var(--ocre); outline-offset: 0; border-color: transparent; }
+  .chat__send { width: 44px; height: 44px; flex: none; border: 0; background: var(--ocre); color: #fff; cursor: pointer; display: grid; place-items: center; }
+  .chat__send:disabled { opacity: .4; cursor: default; }
+  .chat__legal { padding: 0 12px 10px; font-size: .7rem; color: var(--pierre); }
+  .chat__legal a { color: inherit; }
+</style>

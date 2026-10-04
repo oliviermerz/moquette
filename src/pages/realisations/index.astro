@@ -1,0 +1,84 @@
+---
+/* Galerie des réalisations. Non indexée tant qu'aucune réalisation n'est publiée. */
+import Base from '../../layouts/Base.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import CaseCard from '../../components/CaseCard.astro';
+import { CtaFinal } from '../../components/sections';
+import { getRealisations } from '../../lib/proof';
+import { photos, finishPhotos } from '../../data/photos';
+
+const real = await getRealisations();
+const filters = [
+  ['tous', 'Tous'], ['terrasse', 'Terrasses'], ['piscine', 'Piscines'], ['allee', 'Allées'], ['entree', 'Entrées'], ['escalier', 'Escaliers'],
+].filter(([v]) => v === 'tous' || real.some((r) => r.data.usage === v));
+---
+<Base
+  title="Nos réalisations"
+  description="Terrasses, plages de piscine, allées, entrées et escaliers en pierre naturelle résinée : nos chantiers documentés, avant et après, avec surface et durée réelles."
+  crumbs={[{ name: 'Réalisations', href: '/realisations/' }]}
+  noindex={real.length === 0}
+>
+  {real.length === 0 ? (
+    <section class="section section--tight">
+      <div class="container grid-2">
+        <div class="stack" style="--stack: 20px">
+          <span class="kicker">Réalisations</span>
+          <h1 class="h1">Nos premières études de cas arrivent.</h1>
+          <p class="lead muted">Chaque chantier STRATE est photographié avant, pendant et après, au même endroit et sans retouche. Les premiers projets sont en cours de documentation.</p>
+          <p class="muted">Vous serez parmi nos premiers clients ? Votre projet pourra devenir l'une de nos références, avec votre accord.</p>
+        </div>
+        <BeforeAfter alt="dalle fissurée recouverte de pierre naturelle" beforeSrc={photos.renovationFissures.src} afterSrc={finishPhotos.beige.src} placeholderNote meta={{ type: 'Terrasse' }} />
+      </div>
+    </section>
+  ) : (
+    <>
+      <section class="section section--tight">
+        <div class="container stack" style="--stack: 20px; max-width: 860px">
+          <span class="kicker">Réalisations</span>
+          <h1 class="h1">Nos réalisations.</h1>
+          <p class="lead muted">Lieu, surface, support, durée réelle du chantier : chaque projet est documenté, photographié au même endroit avant et après, sans retouche.</p>
+        </div>
+      </section>
+      <section class="section section--flush-top">
+        <div class="container stack" style="--stack: 32px">
+          {filters.length > 2 && (
+            <div class="filters" role="group" aria-label="Filtrer les réalisations" data-filters hidden>
+              {filters.map(([v, l], i) => <button type="button" class="filter" data-filter={v} aria-pressed={i === 0 ? 'true' : 'false'}>{l}</button>)}
+            </div>
+          )}
+          <div class="gallery" data-gallery>{real.map((r, i) => <CaseCard r={r} headingLevel="h2" />)}</div>
+          <p class="muted" data-gallery-empty hidden>Aucune réalisation dans cette catégorie pour le moment.</p>
+        </div>
+      </section>
+    </>
+  )}
+  <CtaFinal title="Je veux transformer mon extérieur." placement="realisations-cta-final" />
+</Base>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-filters]');
+  if (bar) {
+    bar.hidden = false; // filtres utiles seulement avec JavaScript
+    const cards = [...document.querySelectorAll<HTMLElement>('[data-gallery] [data-usage]')];
+    const empty = document.querySelector<HTMLElement>('[data-gallery-empty]')!;
+    const apply = (v: string) => {
+      bar.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === v)));
+      let n = 0;
+      cards.forEach((c) => { const show = v === 'tous' || c.dataset.usage === v; c.hidden = !show; if (show) n++; });
+      empty.hidden = n > 0;
+      history.replaceState(null, '', v === 'tous' ? location.pathname : `#${v}`);
+    };
+    bar.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]'); if (b) apply(b.dataset.filter!); });
+    const initial = location.hash.slice(1);
+    if (initial && bar.querySelector(`[data-filter="${CSS.escape(initial)}"]`)) apply(initial);
+  }
+</script>
+
+<style>
+  .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .filter { flex: none; min-height: 44px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--chaux); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
+  .filter[aria-pressed='true'] { background: var(--anthracite); color: var(--chaux); border-color: var(--anthracite); }
+  .gallery { display: grid; gap: 32px 24px; }
+  @media (min-width: 700px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1040px) { .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>

@@ -1,0 +1,53 @@
+---
+/**
+ * Avis clients authentiques. Aucun avis n'est filtré par sa note.
+ * Pas de balisage AggregateRating : Google ne l'affiche pas pour les avis qu'une entreprise publie sur son propre site.
+ */
+import type { Review } from '../lib/google-reviews';
+import { getGoogleReviews } from '../lib/google-reviews';
+interface Props { reviews: Review[]; limit?: number; emptyText?: string }
+const { reviews, limit = 6, emptyText = "Les avis Google de nos clients s'afficheront ici." } = Astro.props;
+const list = reviews.slice(0, limit);
+const g = await getGoogleReviews();
+const fmt = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
+---
+{list.length > 0 ? (
+  <div class="rev">
+    {g?.rating != null && g.count > 0 && (
+      <p class="rev__summary">
+        <span class="rev__score">{g.rating.toLocaleString('fr-FR', { maximumFractionDigits: 1 })}</span>
+        <span><span class="stars" aria-hidden="true">{'★'.repeat(Math.round(g.rating))}</span><span class="muted">{g.count} avis Google</span></span>
+      </p>
+    )}
+    <ul class="rev__list" role="list">
+      {list.map((r) => (
+        <li class="rev__item">
+          <p class="stars" aria-label={`${r.rating} sur 5`}>{'★'.repeat(r.rating)}<span class="stars--off">{'★'.repeat(5 - r.rating)}</span></p>
+          <blockquote class="rev__text">{r.text.length > 420 ? `${r.text.slice(0, 400).trim()}…` : r.text}</blockquote>
+          <p class="rev__who mono">{r.author}{r.ville ? ` · ${r.ville}` : ''} · {fmt.format(r.date)}</p>
+        </li>
+      ))}
+    </ul>
+    <p class="rev__src muted">Avis publiés sur Google, affichés sans tri ni modification.{g?.mapsUrl && <> <a href={g.mapsUrl} rel="noopener">Voir tous les avis sur Google</a></>}</p>
+  </div>
+) : (
+  <div class="rev-empty">
+    <p class="h3">{emptyText}</p>
+    <p class="muted">Photo du chantier, prénom, ville. Publiés tels quels, sans tri ni modification.</p>
+  </div>
+)}
+<style>
+  .rev { display: grid; gap: 24px; }
+  .rev__summary { display: flex; align-items: center; gap: 16px; }
+  .rev__score { font-family: var(--font-display); font-stretch: 120%; font-weight: 600; font-size: 3rem; line-height: 1; }
+  .rev__summary > span:last-child { display: grid; }
+  .stars { color: var(--ocre); letter-spacing: 2px; }
+  .stars--off { color: var(--line); }
+  .rev__list { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  .rev__item { display: grid; gap: 12px; align-content: start; padding: 24px; background: var(--blanc); border: 1px solid var(--line); }
+  .rev__text { margin: 0; font-size: 1rem; line-height: 1.55; }
+  .rev__who { color: var(--pierre); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .rev__src { font-size: 0.85rem; }
+  .rev__src a { color: var(--ocre); }
+  .rev-empty { border: 1px dashed var(--gres); padding: clamp(24px, 4vw, 48px); display: grid; gap: 8px; max-width: 760px; }
+</style>

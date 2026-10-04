@@ -1,0 +1,76 @@
+---
+import Logo from './Logo.astro';
+import { site, nav, ESTIMATE_URL } from '../config/site';
+const path = Astro.url.pathname;
+---
+<header class="hdr" data-hdr>
+  <div class="hdr__in container">
+    <a href="/" class="hdr__logo" aria-label="STRATE, accueil"><Logo /></a>
+    <nav class="hdr__nav" id="main-nav" aria-label="Navigation principale">
+      <ul role="list">
+        {nav.map((item) => (
+          <li><a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>{item.label}</a></li>
+        ))}
+      </ul>
+      <div class="hdr__mobile-extra">
+        {site.phone && <a class="hdr__tel" href={`tel:${site.phone.e164}`} data-placement="menu">{site.phone.display}</a>}
+        <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer" data-placement="menu">Estimer mon projet</a>
+      </div>
+    </nav>
+    <div class="hdr__actions">
+      {site.phone && <a class="hdr__tel hdr__tel--desk mono" href={`tel:${site.phone.e164}`} data-placement="header">{site.phone.display}</a>}
+      <a class="btn btn--primary hdr__cta" href={ESTIMATE_URL} data-cta="estimer" data-placement="header">Estimer mon projet</a>
+      <button class="hdr__burger" type="button" aria-controls="main-nav" aria-expanded="false" data-burger>
+        <span class="sr-only">Menu</span>
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 10h16M2 14h16" stroke="currentColor" stroke-width="1.5" /></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const hdr = document.querySelector<HTMLElement>('[data-hdr]');
+  const burger = document.querySelector<HTMLButtonElement>('[data-burger]');
+  burger?.addEventListener('click', () => {
+    const open = hdr?.toggleAttribute('data-open') ?? false;
+    burger.setAttribute('aria-expanded', String(open));
+    document.documentElement.style.overflow = open ? 'hidden' : '';
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && hdr?.hasAttribute('data-open')) { burger?.click(); burger?.focus(); }
+  });
+  const onScroll = () => hdr?.toggleAttribute('data-scrolled', window.scrollY > 8);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+
+<style>
+  .hdr { position: sticky; top: 0; z-index: 50; background: rgba(241, 239, 234, 0.94); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s; }
+  .hdr[data-scrolled] { border-bottom-color: var(--line); }
+  .hdr__in { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .hdr__logo { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--anthracite); }
+  .hdr__nav ul { display: flex; gap: clamp(16px, 2vw, 30px); }
+  .hdr__nav a { text-decoration: none; font-size: 0.74rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding-block: 8px; border-bottom: 1px solid transparent; }
+  .hdr__nav a:hover, .hdr__nav a[aria-current='page'] { border-bottom-color: currentColor; }
+  .hdr__actions { display: flex; align-items: center; gap: 16px; }
+  .hdr__tel { text-decoration: none; }
+  .hdr__cta { min-height: 44px; padding: 10px 18px; font-size: 0.72rem; }
+  .hdr__burger { display: none; width: 44px; height: 44px; place-items: center; background: none; border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; }
+  .hdr__mobile-extra { display: none; }
+
+  @media (max-width: 1080px) {
+    .hdr__burger { display: grid; }
+    .hdr__tel--desk { display: none; }
+    .hdr__nav {
+      position: fixed; inset: var(--header-h) 0 0 0; background: var(--chaux);
+      padding: 24px var(--gutter) 40px; display: none; flex-direction: column; justify-content: space-between; overflow-y: auto;
+    }
+    .hdr[data-open] .hdr__nav { display: flex; }
+    .hdr__nav ul { flex-direction: column; gap: 0; }
+    .hdr__nav li { border-bottom: 1px solid var(--line); }
+    .hdr__nav a { display: block; padding-block: 18px; font-family: var(--font-display); font-stretch: 116%; font-size: 1.4rem; letter-spacing: 0; text-transform: none; border: 0; }
+    .hdr__mobile-extra { display: grid; gap: 12px; margin-top: 32px; }
+    .hdr__mobile-extra .hdr__tel { font-family: var(--font-mono); font-size: 1rem; }
+  }
+  @media (max-width: 560px) { .hdr__cta { display: none; } }
+</style>

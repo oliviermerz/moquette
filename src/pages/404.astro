@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import { ESTIMATE_URL } from '../config/site';
+---
+<Base title="Page introuvable" description="Cette page n'existe pas ou a été déplacée." noindex>
+  <section class="section">
+    <div class="container stack" style="--stack: 24px">
+      <span class="kicker">Erreur 404</span>
+      <h1 class="h1" style="max-width: 16ch">Cette page n'existe pas, ou plus.</h1>
+      <p class="lead muted">Elle a peut-être été déplacée. Voici où reprendre.</p>
+      <div class="btn-row">
+        <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer" data-placement="404">Estimer mon projet</a>
+        <a class="btn btn--outline" href="/">Retour à l'accueil</a>
+      </div>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,35 @@
+---
+import Visual from './Visual.astro';
+import { usages } from '../data/usages';
+import { usagePhotos } from '../data/photos';
+interface Props { slugs?: string[] }
+const { slugs = ['terrasse-moquette-de-pierre', 'moquette-de-pierre-piscine', 'moquette-de-pierre-allee', 'moquette-de-pierre-escalier'] } = Astro.props;
+const list = slugs.map((s) => usages.find((u) => u.slug === s)!).filter(Boolean);
+---
+<ul class="uses" role="list">
+  {list.map((u, i) => (
+    <li>
+      <a class="use" href={`/${u.slug}/`}>
+        <Visual src={usagePhotos[u.slug]?.src} position={usagePhotos[u.slug]?.position} tex={u.tex} alt="" fill seed={20 + i} sizes="(min-width: 1000px) 25vw, 50vw" />
+        <span class="use__body">
+          <span class="kicker">{u.kicker}</span>
+          <span class="use__title">{u.label}</span>
+          <span class="use__more" aria-hidden="true">Découvrir →</span>
+        </span>
+      </a>
+    </li>
+  ))}
+</ul>
+<style>
+  .uses { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 1000px) { .uses { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; } }
+  .use { position: relative; display: flex; align-items: flex-end; aspect-ratio: 3 / 4; overflow: hidden; color: #fff; text-decoration: none; padding: clamp(14px, 2vw, 22px); }
+  .use::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 21, 19, 0) 35%, rgba(20, 21, 19, 0.78)); transition: background .3s; }
+  .use:hover::after { background: linear-gradient(180deg, rgba(20, 21, 19, 0.1) 20%, rgba(20, 21, 19, 0.86)); }
+  .use__body { position: relative; z-index: 1; display: grid; gap: 4px; }
+  .use .kicker { color: rgba(255, 255, 255, 0.78); }
+  .use__title { font-family: var(--font-display); font-stretch: 116%; font-weight: 500; font-size: clamp(1.2rem, 1rem + 1vw, 1.7rem); line-height: 1.1; }
+  .use__more { font-size: 0.82rem; opacity: 0.85; }
+  .use :global(.visual) { transition: transform .6s ease; }
+  .use:hover :global(.visual) { transform: scale(1.04); }
+</style>

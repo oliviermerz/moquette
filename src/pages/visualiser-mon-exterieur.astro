@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import VisionTool from '../components/VisionTool.astro';
+import { FaqList, CtaFinal } from '../components/sections';
+import type { Faq } from '../data/usages';
+
+const faq: Faq[] = [
+  { q: 'La simulation est-elle fidèle au résultat final ?', a: "Elle donne une idée réaliste de l'ambiance et de la teinte, mais reste une simulation visuelle non contractuelle. La couleur définitive se choisit sur échantillons, et la faisabilité se confirme lors du diagnostic de votre support." },
+  { q: 'Que devient ma photo ?', a: "Elle est réduite et débarrassée de ses métadonnées (dont la position GPS) dans votre navigateur. Pour le rendu réaliste, elle est transmise à notre prestataire d'intelligence artificielle, puis jointe à l'email qui vous est envoyé. Nous ne la conservons pas sur notre site." },
+  { q: 'Pourquoi demander mon email ?', a: "Pour vous envoyer la simulation en haute qualité et permettre à un conseiller de vous recontacter si vous le souhaitez. L'aperçu instantané, lui, est accessible sans rien demander." },
+];
+---
+<Base
+  title="Visualiser mon extérieur en pierre naturelle"
+  description="STRATE Vision : une photo de votre terrasse, allée ou plage de piscine, une finition, et vous voyez votre extérieur en pierre naturelle avant les travaux."
+  crumbs={[{ name: 'Visualiser mon extérieur', href: '/visualiser-mon-exterieur/' }]}
+  faq={faq}
+>
+  <section class="section section--tight">
+    <div class="container stack" style="--stack: 32px">
+      <div class="stack" style="--stack: 14px; max-width: 760px">
+        <span class="kicker">STRATE Vision · Simulation visuelle non contractuelle</span>
+        <h1 class="h1">Voyez votre futur extérieur avant les travaux.</h1>
+        <p class="lead muted">Découvrez votre extérieur autrement : une photo, quelques points pour délimiter le sol, une finition. L'aperçu est immédiat, le rendu réaliste arrive en quelques secondes.</p>
+      </div>
+      <VisionTool />
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head"><span class="kicker">Comment ça marche</span><h2 class="h2">Quatre gestes, une projection.</h2></div>
+      <ol class="grid-cards how" role="list">
+        <li><span class="mono">01</span><h3 class="h3">Votre photo</h3><p class="muted">Depuis votre téléphone, debout, le sol bien visible.</p></li>
+        <li><span class="mono">02</span><h3 class="h3">Le sol</h3><p class="muted">Vous touchez les angles de la zone à transformer.</p></li>
+        <li><span class="mono">03</span><h3 class="h3">La finition</h3><p class="muted">Beige, blanc, gris ou mix : l'aperçu change instantanément.</p></li>
+        <li><span class="mono">04</span><h3 class="h3">Le rendu</h3><p class="muted">Une simulation réaliste, envoyée aussi par email. Votre maison reste intacte : seul le sol change.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid-2 faq-grid">
+      <div class="section-head"><span class="kicker">Questions fréquentes</span><h2 class="h2">Bon à savoir.</h2></div>
+      <FaqList items={faq} />
+    </div>
+  </section>
+
+  <CtaFinal title="Votre projet prend forme ? Estimons-le." placement="vision-cta-final" />
+</Base>
+<style>
+  .how li { display: grid; gap: 8px; align-content: start; }
+  .how .mono { color: var(--ocre); }
+  @media (min-width: 1040px) { .how { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .faq-grid { align-items: start; }
+</style>

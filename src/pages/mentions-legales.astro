@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../config/site';
+const l = site.legal;
+const v = (x: string | null) => x ?? null;
+---
+<Base title="Mentions légales" description="Mentions légales du site STRATE." crumbs={[{ name: 'Mentions légales', href: '/mentions-legales/' }]}>
+  <section class="section section--tight">
+    <div class="container prose">
+      <h1 class="h1">Mentions légales</h1>
+
+      <h2>Éditeur du site</h2>
+      <p>
+        {v(l.company) ?? <span class="todo">raison sociale</span>}, {v(l.form) ?? <span class="todo">forme juridique</span>} au capital de {v(l.capital) ?? <span class="todo">capital</span>}.<br />
+        Siège : {site.address ? `${site.address.street}, ${site.address.postalCode} ${site.address.city}` : <span class="todo">adresse du siège</span>}.<br />
+        SIRET : {v(l.siret) ?? <span class="todo">SIRET</span>} · RCS : {v(l.rcs) ?? <span class="todo">RCS</span>} · TVA : {v(l.vat) ?? <span class="todo">n° TVA</span>}.<br />
+        Contact : {site.email ?? <span class="todo">email</span>}{site.phone && ` · ${site.phone.display}`}.
+      </p>
+
+      <h2>Directeur de la publication</h2>
+      <p>{v(l.director) ?? <span class="todo">nom du directeur de la publication</span>}</p>
+
+      <h2>Hébergement</h2>
+      <p>{v(l.host) ?? <span class="todo">nom, adresse et téléphone de l'hébergeur</span>}</p>
+
+      <h2>Assurances</h2>
+      <p>
+        Garantie décennale : {v(l.insurerDecennale) ?? <span class="todo">assureur, n° de contrat, zone géographique couverte</span>}.<br />
+        Responsabilité civile professionnelle : {v(l.insurerRcPro) ?? <span class="todo">assureur, n° de contrat</span>}.
+      </p>
+
+      <h2>Propriété intellectuelle</h2>
+      <p>L'ensemble des contenus de ce site (textes, photographies, visuels, logo) est la propriété de STRATE, sauf mention contraire. Toute reproduction sans autorisation écrite est interdite.</p>
+
+      <h2>Médiation de la consommation</h2>
+      <p>Conformément au Code de la consommation, le client consommateur peut recourir gratuitement à un médiateur : <span class="todo">nom et coordonnées du médiateur</span>.</p>
+
+      <h2>Simulations et estimations</h2>
+      <p>Les estimations et visualisations proposées sur ce site sont indicatives et non contractuelles. Seul le devis établi après visite technique engage STRATE.</p>
+    </div>
+  </section>
+</Base>

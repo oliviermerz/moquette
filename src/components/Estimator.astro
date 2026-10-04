@@ -1,0 +1,423 @@
+---
+/**
+ * L'Estimateur STRATE.
+ * Sans JavaScript : un formulaire complet, envoyé en POST à /api/lead/.
+ * Avec JavaScript : une question par écran, avance automatique, estimation immédiate, envoi en arrière-plan.
+ */
+import Visual from './Visual.astro';
+import { site } from '../config/site';
+import { LABELS, FINITIONS } from '../config/pricing';
+import type { Tex } from '../data/textures';
+
+const espaceIcons: Record<string, string> = {
+  terrasse: 'M3 20h22M5 20l3-8h12l3 8M10 12V7h8v5',
+  piscine: 'M4 7h20v14H4zM7 15c2-1.5 3-1.5 5 0s3 1.5 5 0 3-1.5 4 0',
+  allee: 'M11 24l2-20M17 24l-2-20M12 14h4',
+  entree: 'M8 24V5h12v19M3 24h22M17 15h.01',
+  escalier: 'M3 24h6v-5h6v-5h6V9h4',
+  autre: 'M7 14h.01M14 14h.01M21 14h.01',
+};
+const endpoint = site.leadEndpoint ?? '/api/lead/';
+const steps = 7;
+---
+<div class="est" data-estimator data-endpoint={endpoint}>
+  <script is:inline>document.documentElement.classList.add('js');</script>
+  <form class="est__form" method="post" action={endpoint} novalidate data-est-form>
+    <div class="est__progress" aria-hidden="true">{Array.from({ length: steps }, () => <i></i>)}</div>
+    <p class="est__count kicker" data-est-count aria-live="polite"></p>
+
+    <fieldset class="est__step" data-step="espace">
+      <legend class="est__q">Quel espace souhaitez-vous transformer ?</legend>
+      <div class="tiles">
+        {Object.entries(LABELS.espace).map(([v, l]) => (
+          <label class="tile">
+            <input type="radio" name="espace" value={v} required />
+            <svg viewBox="0 0 28 28" width="28" height="28" aria-hidden="true"><path d={espaceIcons[v]} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+            <span>{l}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <fieldset class="est__step" data-step="taille">
+      <legend class="est__q" data-q-surface>Quelle est approximativement la surface ?</legend>
+      <div class="range" data-only="surface">
+        <output class="range__out" for="est-surface"><span data-out-surface>40</span> m²</output>
+        <label class="sr-only" for="est-surface">Surface en mètres carrés</label>
+        <input type="range" id="est-surface" name="surface" min="10" max="300" step="5" value="40" />
+        <div class="range__scale mono" aria-hidden="true"><span>10 m²</span><span>300 m² et plus</span></div>
+        <div class="quick">{[20, 40, 80, 150].map((q) => <button type="button" class="chip" data-quick={q}>{q} m²</button>)}</div>
+      </div>
+      <div class="range" data-only="marches" hidden>
+        <output class="range__out" for="est-marches"><span data-out-marches>6</span> marches</output>
+        <label class="sr-only" for="est-marches">Nombre de marches</label>
+        <input type="range" id="est-marches" name="marches" min="1" max="40" step="1" value="6" />
+        <div class="range__scale mono" aria-hidden="true"><span>1</span><span>40</span></div>
+      </div>
+      <p class="hint muted">Un ordre de grandeur suffit. Nous mesurerons sur place.</p>
+    </fieldset>
+
+    <fieldset class="est__step" data-step="support">
+      <legend class="est__q">Quel est le support actuel ?</legend>
+      <div class="tiles">
+        {Object.entries(LABELS.support).map(([v, l]) => (
+          <label class="tile tile--text"><input type="radio" name="support" value={v} required /><span>{l}</span></label>
+        ))}
+      </div>
+    </fieldset>
+
+    <fieldset class="est__step" data-step="etat">
+      <legend class="est__q">Dans quel état est-il ?</legend>
+      <div class="tiles">
+        {Object.entries(LABELS.etat).map(([v, l]) => (
+          <label class="tile tile--text"><input type="radio" name="etat" value={v} required /><span>{l}</span></label>
+        ))}
+      </div>
+    </fieldset>
+
+    <fieldset class="est__step" data-step="finition">
+      <legend class="est__q">Quelle ambiance recherchez-vous ?</legend>
+      <div class="tiles tiles--swatch">
+        {FINITIONS.map((v, i) => (
+          <label class="tile tile--swatch">
+            <input type="radio" name="finition" value={v} />
+            {v !== 'autre'
+              ? <Visual tex={v as Tex} alt="" ratio="4 / 3" seed={60 + i} />
+              : <span class="tile__blank" aria-hidden="true">?</span>}
+            <span>{LABELS.finition[v]}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <fieldset class="est__step" data-step="cp">
+      <legend class="est__q">Où se situe votre projet ?</legend>
+      <div class="field field--short">
+        <label for="est-cp">Code postal</label>
+        <input id="est-cp" name="code_postal" inputmode="numeric" autocomplete="postal-code" maxlength="5" pattern="[0-9]{5}" required />
+      </div>
+    </fieldset>
+
+    <section class="est__step est__result" data-step="result" aria-labelledby="est-result-title">
+      <p class="kicker">Votre première estimation</p>
+      <h2 class="est__q" id="est-result-title" data-result-title></h2>
+      <div class="estim" data-result-box></div>
+      <div data-result-notes></div>
+    </section>
+
+    <fieldset class="est__step" data-step="contact">
+      <legend class="est__q">Où envoyer votre étude personnalisée ?</legend>
+      <div class="grid">
+        <div class="field"><label for="est-prenom">Prénom</label><input id="est-prenom" name="prenom" autocomplete="given-name" required /></div>
+        <div class="field"><label for="est-nom">Nom</label><input id="est-nom" name="nom" autocomplete="family-name" required /></div>
+        <div class="field"><label for="est-email">Email</label><input id="est-email" name="email" type="email" autocomplete="email" inputmode="email" required /></div>
+        <div class="field"><label for="est-tel">Téléphone</label><input id="est-tel" name="telephone" type="tel" autocomplete="tel" inputmode="tel" required /></div>
+        <div class="field"><label for="est-delai">Échéance des travaux <span class="opt">(facultatif)</span></label>
+          <select id="est-delai" name="delai"><option value="">Choisir</option>{Object.entries(LABELS.delai).map(([v, l]) => <option value={v}>{l}</option>)}</select>
+        </div>
+      </div>
+      <div class="field"><label for="est-msg">Un détail à nous signaler ? <span class="opt">(facultatif)</span></label><textarea id="est-msg" name="message" rows="2"></textarea></div>
+      <label class="check"><input type="checkbox" name="consentement_traitement" value="true" required /><span>J'accepte que STRATE utilise ces informations pour étudier mon projet et me recontacter à ce sujet. <a href="/confidentialite/">Politique de confidentialité</a>.</span></label>
+      <label class="check"><input type="checkbox" name="consentement_marketing" value="true" /><span>Je souhaite recevoir des idées et des réalisations par email (facultatif, désinscription en un clic).</span></label>
+      <input type="text" name="site_web" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <input type="hidden" name="page" value="/estimer-mon-projet/" />
+    </fieldset>
+
+    <p class="err" data-est-error role="alert" hidden></p>
+
+    <div class="est__nav">
+      <button type="button" class="btn btn--link" data-est-back hidden>← Retour</button>
+      <button type="button" class="btn btn--primary" data-est-next hidden>Continuer <span class="arrow" aria-hidden="true">→</span></button>
+      <button type="submit" class="btn btn--primary" data-est-submit>Recevoir mon étude personnalisée <span class="arrow" aria-hidden="true">→</span></button>
+    </div>
+    <p class="mono muted est__legal">Estimation indicative et non contractuelle. Sans engagement.</p>
+  </form>
+
+  <aside class="est__side" aria-label="Récapitulatif de votre projet">
+    <p class="kicker">Votre projet</p>
+    <dl class="recap" data-recap></dl>
+    {site.phone && <p class="est__phone">Vous préférez en parler ? <a href={`tel:${site.phone.e164}`} data-placement="estimateur">{site.phone.display}</a></p>}
+  </aside>
+
+  <div class="est__done" data-est-done hidden tabindex="-1">
+    <p class="kicker">Demande envoyée</p>
+    <p class="h2">Merci. Votre projet est entre de bonnes mains.</p>
+    <p class="muted">Vous allez recevoir le récapitulatif par email. Un conseiller STRATE vous recontacte{site.callbackDelay ? ` ${site.callbackDelay}` : ' rapidement'} pour en parler.</p>
+    <a class="btn btn--link" href="/solutions/">En attendant, découvrir nos solutions</a>
+  </div>
+</div>
+
+<script>
+  import { estimate, complexity, notes, zoneCovered, formatEuros, LABELS, type Answers } from '../config/pricing';
+  import { track, getAttribution } from '../scripts/tracking';
+
+  const root = document.querySelector<HTMLElement>('[data-estimator]');
+  if (root) init(root);
+
+  function init(root: HTMLElement) {
+    const form = root.querySelector<HTMLFormElement>('[data-est-form]')!;
+    const steps = [...form.querySelectorAll<HTMLElement>('.est__step')];
+    const order = steps.map((s) => s.dataset.step!);
+    const bars = [...form.querySelectorAll<HTMLElement>('.est__progress i')];
+    const count = form.querySelector<HTMLElement>('[data-est-count]')!;
+    const back = form.querySelector<HTMLButtonElement>('[data-est-back]')!;
+    const next = form.querySelector<HTMLButtonElement>('[data-est-next]')!;
+    const submit = form.querySelector<HTMLButtonElement>('[data-est-submit]')!;
+    const errBox = form.querySelector<HTMLElement>('[data-est-error]')!;
+    const recap = root.querySelector<HTMLElement>('[data-recap]')!;
+    const surface = form.querySelector<HTMLInputElement>('#est-surface')!;
+    const marches = form.querySelector<HTMLInputElement>('#est-marches')!;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let i = 0, started = false, formStarted = false, sizeTouched = false;
+
+    const val = (name: string) => (form.elements.namedItem(name) as RadioNodeList | HTMLInputElement | null)?.value ?? '';
+    const answers = (): Answers => ({
+      espace: (val('espace') || 'terrasse') as Answers['espace'],
+      surface: val('espace') === 'escalier' ? null : Number(surface.value),
+      marches: val('espace') === 'escalier' ? Number(marches.value) : null,
+      support: (val('support') || 'nsp') as Answers['support'],
+      etat: (val('etat') || 'nsp') as Answers['etat'],
+      finition: (val('finition') || undefined) as Answers['finition'],
+      codePostal: val('code_postal'),
+    });
+
+    const surfaceText = (v: number) => (v >= 300 ? '300 m² et plus' : `${v} m²`);
+    function renderRecap() {
+      const a = answers();
+      const rows: [string, string | null][] = [
+        ['Espace', val('espace') ? LABELS.espace[a.espace] : null],
+        a.espace === 'escalier' ? ['Marches', sizeTouched ? String(a.marches) : null] : ['Surface', sizeTouched ? surfaceText(a.surface!) : null],
+        ['Support', val('support') ? LABELS.support[a.support] : null],
+        ['État', val('etat') ? LABELS.etat[a.etat] : null],
+        ['Ambiance', a.finition ? LABELS.finition[a.finition] : null],
+        ['Code postal', a.codePostal || null],
+      ];
+      recap.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v ? escapeHtml(v) : '—'}</dd></div>`).join('');
+    }
+    const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+    function syncSizeStep() {
+      const isStairs = val('espace') === 'escalier';
+      form.querySelector<HTMLElement>('[data-only="surface"]')!.hidden = isStairs;
+      form.querySelector<HTMLElement>('[data-only="marches"]')!.hidden = !isStairs;
+      surface.disabled = isStairs;
+      marches.disabled = !isStairs;
+      form.querySelector('[data-q-surface]')!.textContent = isStairs ? 'Combien de marches compte votre escalier ?' : 'Quelle est approximativement la surface ?';
+    }
+
+    function renderResult() {
+      const a = answers();
+      const e = estimate(a);
+      const c = complexity(a);
+      const z = zoneCovered(a.codePostal);
+      form.querySelector('[data-result-title]')!.textContent = `${LABELS.espace[a.espace]} · ${a.espace === 'escalier' ? `${a.marches} marches` : surfaceText(a.surface!)}`;
+      const box = form.querySelector<HTMLElement>('[data-result-box]')!;
+      box.innerHTML = (e.status === 'ok'
+        ? `<p class="estim__big">${formatEuros(e.min)} à ${formatEuros(e.max)} TTC</p>`
+        : `<p class="estim__big">Étude personnalisée recommandée</p><p class="muted">Pour vous donner une fourchette fiable : ${e.reasons.map(escapeHtml).join(', ')}. Un conseiller vous l'envoie après lecture de vos réponses.</p>`)
+        + `<p class="pills"><span class="pill ${c.grade === 'A' ? 'pill--ok' : 'pill--warn'}">${c.label}</span><span class="pill ${z ? 'pill--ok' : 'pill--warn'}">${z ? 'Zone couverte' : 'Hors zone actuelle : projet enregistré'}</span></p>`
+        + `<p class="mono muted small">Estimation indicative et non contractuelle. Seul le devis établi après visite technique engage STRATE.</p>`;
+      const n = notes(a);
+      form.querySelector('[data-result-notes]')!.innerHTML = n.length ? `<p class="kicker">Points d'attention</p><ul class="list-dash">${n.map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` : '';
+      track('simulator_complete', { project_type: a.espace, estimate: e.status });
+    }
+
+    function show(n: number, focus = true) {
+      i = Math.max(0, Math.min(order.length - 1, n));
+      steps.forEach((s, k) => s.classList.toggle('is-active', k === i));
+      bars.forEach((b, k) => b.classList.toggle('on', k <= Math.min(i, bars.length - 1)));
+      const name = order[i];
+      const questionIndex = Math.min(i + 1, 6);
+      count.textContent = name === 'result' ? 'Votre estimation' : name === 'contact' ? 'Dernière étape' : `Question ${questionIndex} sur 6`;
+      back.hidden = i === 0;
+      const auto = ['espace', 'support', 'etat', 'finition'].includes(name);
+      next.hidden = auto || name === 'contact';
+      next.innerHTML = name === 'cp' ? 'Voir mon estimation <span class="arrow" aria-hidden="true">→</span>' : name === 'result' ? 'Recevoir mon étude personnalisée <span class="arrow" aria-hidden="true">→</span>' : 'Continuer <span class="arrow" aria-hidden="true">→</span>';
+      submit.hidden = name !== 'contact';
+      errBox.hidden = true;
+      if (name === 'taille') syncSizeStep();
+      if (name === 'result') renderResult();
+      if (focus) {
+        const target = steps[i].querySelector<HTMLElement>('legend, h2') ?? steps[i];
+        target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+        const top = form.getBoundingClientRect().top + scrollY - 90;
+        if (scrollY > top) scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+      }
+    }
+
+    function validateStep(): string | null {
+      const name = order[i];
+      if (name === 'cp' && !/^\d{5}$/.test(val('code_postal').trim())) return 'Saisissez un code postal à 5 chiffres.';
+      if (['espace', 'support', 'etat'].includes(name) && !val(name)) return 'Choisissez une réponse pour continuer.';
+      return null;
+    }
+    function goNext() {
+      const err = validateStep();
+      if (err) { errBox.textContent = err; errBox.hidden = false; return; }
+      track('simulator_step', { step: order[i] });
+      show(i + 1);
+    }
+
+    form.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (!started) { started = true; track('simulator_start', { page: location.pathname }); }
+      renderRecap();
+      if (t.type === 'radio' && ['espace', 'support', 'etat', 'finition'].includes(t.name)) {
+        if (t.name === 'espace') syncSizeStep();
+        setTimeout(goNext, reduce ? 0 : 220);
+      }
+    });
+    form.addEventListener('input', (e) => {
+      const t = e.target as HTMLElement;
+      if (t === surface || t === marches) {
+        sizeTouched = true;
+        form.querySelector('[data-out-surface]')!.textContent = Number(surface.value) >= 300 ? '300+' : surface.value;
+        form.querySelector('[data-out-marches]')!.textContent = marches.value;
+        renderRecap();
+      }
+      if (order[i] === 'contact' && !formStarted) { formStarted = true; track('form_start', { form_id: 'estimateur' }); }
+    });
+    form.querySelectorAll<HTMLButtonElement>('[data-quick]').forEach((b) => b.addEventListener('click', () => {
+      surface.value = b.dataset.quick!;
+      surface.dispatchEvent(new Event('input', { bubbles: true }));
+    }));
+    form.querySelector<HTMLInputElement>('#est-cp')!.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goNext(); } });
+    next.addEventListener('click', () => { if (order[i] === 'taille') sizeTouched = true; renderRecap(); goNext(); });
+    back.addEventListener('click', () => show(i - 1));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const v = (k: string) => String(fd.get(k) ?? '').trim();
+      const missing: string[] = [];
+      if (!v('prenom')) missing.push('votre prénom');
+      if (!v('nom')) missing.push('votre nom');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) missing.push('un email valide');
+      if (v('telephone').replace(/\D/g, '').length < 10) missing.push('un téléphone à 10 chiffres');
+      if (!fd.get('consentement_traitement')) missing.push('votre accord pour le traitement de vos données');
+      if (missing.length) { errBox.textContent = `Il manque ${missing.join(', ')}.`; errBox.hidden = false; return; }
+
+      const a = answers();
+      const payload = {
+        espace: a.espace, surface: a.surface, marches: a.marches, support: a.support, etat: a.etat, finition: a.finition,
+        code_postal: a.codePostal, prenom: v('prenom'), nom: v('nom'), email: v('email'), telephone: v('telephone'),
+        delai: v('delai'), message: v('message') || undefined,
+        consentement_traitement: true, consentement_marketing: !!fd.get('consentement_marketing'),
+        attribution: getAttribution(), page: location.pathname, site_web: v('site_web'),
+      };
+      submit.disabled = true;
+      errBox.hidden = true;
+      try {
+        const res = await fetch(root.dataset.endpoint!, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok || !body.ok) throw new Error(body.error || String(res.status));
+        track('generate_lead', { form_id: 'estimateur', project_type: a.espace, lead_score: complexity(a).grade });
+        form.hidden = true;
+        root.querySelector<HTMLElement>('.est__side')!.hidden = true;
+        const done = root.querySelector<HTMLElement>('[data-est-done]')!;
+        done.hidden = false;
+        done.focus();
+        scrollTo({ top: done.getBoundingClientRect().top + scrollY - 100 });
+      } catch (err) {
+        submit.disabled = false;
+        const code = (err as Error).message;
+        errBox.textContent = code === 'trop_de_demandes'
+          ? 'Plusieurs demandes ont déjà été envoyées depuis votre connexion. Réessayez dans quelques minutes.'
+          : "Votre demande n'a pas pu être envoyée. Réessayez dans un instant" + (document.querySelector('.est__phone') ? ', ou appelez-nous.' : '.');
+        errBox.hidden = false;
+      }
+    });
+
+    // Lien depuis une autre page : /estimer-mon-projet/?espace=piscine
+    const params = new URLSearchParams(location.search);
+    const pre = params.get('espace');
+    const radio = pre ? form.querySelector<HTMLInputElement>(`input[name="espace"][value="${CSS.escape(pre)}"]`) : null;
+    if (radio) { radio.checked = true; started = true; track('simulator_start', { page: document.referrer ? new URL(document.referrer).pathname : 'direct', preset: pre }); }
+    syncSizeStep();
+    renderRecap();
+    show(radio ? 1 : 0, false);
+    const cpParam = params.get('cp');
+    if (cpParam && /^d{5}$/.test(cpParam)) form.querySelector<HTMLInputElement>('#est-cp')!.value = cpParam;
+    if (params.get('erreur')) { errBox.textContent = "Votre demande n'a pas pu être envoyée. Merci de réessayer."; errBox.hidden = false; }
+  }
+</script>
+
+<style>
+  .est { display: grid; gap: 24px; }
+  @media (min-width: 1000px) { .est { grid-template-columns: minmax(0, 1fr) 300px; gap: 0; border: 1px solid var(--line); background: var(--blanc); } }
+  .est__form { display: grid; gap: 24px; align-content: start; padding: clamp(20px, 4vw, 48px); background: var(--blanc); border: 1px solid var(--line); min-width: 0; }
+  @media (min-width: 1000px) { .est__form { border: 0; min-height: 600px; } }
+  .est__progress { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .est__progress i { height: 3px; background: var(--line); transition: background-color .3s; }
+  .est__progress i.on { background: var(--ocre); }
+  .est__step { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 20px; }
+  .est__q { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem); line-height: 1.1; padding: 0; outline: none; text-wrap: balance; }
+  :global(html.js) .est__step:not(.is-active) { display: none; }
+  :global(html.js) .est__step.is-active { animation: step-in .35s ease both; }
+  @keyframes step-in { from { opacity: .3; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  /* Sans JavaScript : tout le formulaire est visible, sauf l'écran de résultat */
+  :global(html:not(.js)) .est__result, :global(html:not(.js)) .est__count, :global(html:not(.js)) .est__progress { display: none; }
+  :global(html:not(.js)) [data-only='marches'] { display: grid !important; }
+  :global(html:not(.js)) .est__step { padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+
+  .tiles { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 640px) { .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .tile { position: relative; display: grid; gap: 10px; align-content: space-between; min-height: 84px; padding: 16px; border: 1px solid var(--line); background: var(--chaux); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+  .tile--text { min-height: 64px; align-content: center; }
+  .tile:hover { border-color: var(--anthracite); }
+  .tile input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .tile:has(input:checked) { border-color: var(--ocre); box-shadow: inset 0 0 0 1px var(--ocre); }
+  .tile:has(input:focus-visible) { outline: 2px solid var(--ocre); outline-offset: 2px; }
+  .tile svg { color: var(--pierre); }
+  .tile--swatch { padding: 8px 8px 12px; }
+  .tile__blank { display: grid; place-items: center; aspect-ratio: 4 / 3; background: var(--chaux-2); font-family: var(--font-display); font-size: 1.6rem; color: var(--pierre); }
+
+  .range { display: grid; gap: 12px; }
+  .range__out { font-family: var(--font-display); font-stretch: 120%; font-weight: 600; font-size: clamp(2.4rem, 2rem + 2vw, 3.6rem); line-height: 1; }
+  .range input { width: 100%; height: 44px; accent-color: var(--ocre); }
+  .range__scale { display: flex; justify-content: space-between; color: var(--pierre); font-size: 0.72rem; }
+  .quick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { min-height: 44px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--chaux); cursor: pointer; }
+  .chip:hover { border-color: var(--anthracite); }
+  .hint { font-size: 0.9rem; }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+  .field { display: grid; gap: 6px; min-width: 0; }
+  .field--short { max-width: 240px; }
+  .field label { font-size: 0.92rem; font-weight: 500; }
+  .opt { color: var(--pierre); font-weight: 400; }
+  .field input, .field select, .field textarea { width: 100%; min-height: 52px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--chaux); font-size: 1rem; }
+  .field textarea { min-height: 72px; resize: vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--ocre); outline-offset: 0; border-color: transparent; }
+  .check { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: 0.88rem; color: var(--pierre); align-items: start; }
+  .check input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--ocre); }
+  .check a { color: var(--ocre); }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+  .est__result :global(.estim) { border: 1px solid var(--anthracite); padding: 20px; display: grid; gap: 10px; }
+  .est__result :global(.estim__big) { font-family: var(--font-display); font-stretch: 120%; font-weight: 600; font-size: clamp(1.4rem, 1.2rem + 1vw, 2rem); line-height: 1.1; }
+  .est__result :global(.pills) { display: flex; flex-wrap: wrap; gap: 8px; }
+  .est__result :global(.pill) { font-family: var(--font-mono); font-size: 0.7rem; padding: 4px 10px; border: 1px solid currentColor; border-radius: 999px; }
+  .est__result :global(.pill--ok) { color: var(--ok); }
+  .est__result :global(.pill--warn) { color: var(--warn); }
+  .est__result :global(.small) { font-size: 0.72rem; }
+  .est__result :global(.list-dash) { margin-top: 10px; }
+
+  .err { color: var(--warn); font-size: 0.92rem; }
+  .est__nav { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+  .est__nav [data-est-back] { margin-right: auto; }
+  @media (max-width: 560px) { .est__nav .btn--primary { flex: 1; } }
+  .est__legal { font-size: 0.72rem; }
+
+  .est__side { padding: 24px; background: var(--chaux-2); display: grid; gap: 16px; align-content: start; }
+  @media (min-width: 1000px) { .est__side { border-left: 1px solid var(--line); } }
+  .est__side :global(.recap) { display: grid; gap: 8px; font-size: 0.92rem; }
+  .est__side :global(.recap div) { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .est__side :global(dt) { color: var(--pierre); }
+  .est__side :global(dd) { margin: 0; font-weight: 500; text-align: right; }
+  .est__phone a { color: var(--ocre); }
+  @media (max-width: 999px) { .est__side { order: -1; display: none; } }
+
+  .est__done { grid-column: 1 / -1; padding: clamp(24px, 5vw, 64px); background: var(--blanc); border: 1px solid var(--line); display: grid; gap: 14px; outline: none; }
+</style>

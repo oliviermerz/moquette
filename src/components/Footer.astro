@@ -1,0 +1,83 @@
+---
+import Logo from './Logo.astro';
+import { site, ESTIMATE_URL } from '../config/site';
+import { usages } from '../data/usages';
+import { getVilleStatuses, villeUrl } from '../lib/proof';
+const villesIndexees = (await getVilleStatuses()).filter((s) => s.indexable);
+const year = new Date().getFullYear();
+---
+<footer class="ftr section--dark">
+  <div class="container">
+    <div class="ftr__top">
+      <p class="ftr__title">Vous avez un projet ? Parlons-en.</p>
+      <div class="btn-row">
+        <a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer" data-placement="footer">Estimer mon projet <span class="arrow" aria-hidden="true">→</span></a>
+        {site.phone && <a class="btn btn--outline" href={`tel:${site.phone.e164}`} data-placement="footer">{site.phone.display}</a>}
+      </div>
+    </div>
+
+    <div class="ftr__cols">
+      <div>
+        <p class="ftr__h">Solutions</p>
+        <ul role="list">{usages.map((u) => <li><a href={`/${u.slug}/`}>{u.label}</a></li>)}</ul>
+      </div>
+      <div>
+        <p class="ftr__h">Comprendre</p>
+        <ul role="list">
+          <li><a href="/moquette-de-pierre/">La moquette de pierre</a></li>
+          <li><a href="/prix-moquette-de-pierre/">Prix</a></li>
+          <li><a href="/moquette-de-pierre/comparatif/">Comparatif des sols extérieurs</a></li>
+          <li><a href="/entreprise/methode/">Notre méthode</a></li>
+          <li><a href="/visualiser-mon-exterieur/">Visualiser mon extérieur</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="ftr__h">Zones d'intervention</p>
+        <p class="ftr__zones"><a href="/zones/hauts-de-france/">{site.zones.region}</a> : {site.zones.cities.join(', ')}.</p>
+        {villesIndexees.length > 0 && <ul role="list" class="ftr__villes">{villesIndexees.map((s) => <li><a href={villeUrl(s.ville)}>Moquette de pierre {s.ville.data.name}</a></li>)}</ul>}
+      </div>
+      <div>
+        <p class="ftr__h">STRATE</p>
+        <ul role="list">
+          {site.phone && <li><a href={`tel:${site.phone.e164}`} data-placement="footer">{site.phone.display}</a></li>}
+          {site.email && <li><a href={`mailto:${site.email}`}>{site.email}</a></li>}
+          {site.address && <li>{site.address.street}, {site.address.postalCode} {site.address.city}</li>}
+          {site.social.instagram && <li><a href={site.social.instagram} rel="noopener">Instagram</a></li>}
+          {site.social.facebook && <li><a href={site.social.facebook} rel="noopener">Facebook</a></li>}
+          <li><a href="/entreprise/">L'entreprise</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ftr__bottom">
+      <a href="/" aria-label="STRATE, accueil" class="ftr__logo"><Logo /></a>
+      <ul role="list" class="ftr__legal">
+        <li><a href="/mentions-legales/">Mentions légales</a></li>
+        <li><a href="/confidentialite/">Confidentialité</a></li>
+        <li><button type="button" data-consent-open>Gestion des cookies</button></li>
+        <li><a href="/plan-du-site/">Plan du site</a></li>
+        <li><a href="/credits-photos/">Crédits photos</a></li>
+        <li>© {year} STRATE</li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .ftr { padding-block: clamp(56px, 8vw, 96px) 120px; }
+  @media (min-width: 900px) { .ftr { padding-bottom: 40px; } }
+  .ftr a:not(.btn), .ftr button { color: var(--muted-on-dark); text-decoration: none; }
+  .ftr a:not(.btn):hover, .ftr button:hover { color: var(--text-on-dark); }
+  .ftr button { background: none; border: 0; padding: 0; cursor: pointer; font-size: inherit; }
+  .ftr__top { display: grid; gap: 24px; padding-bottom: 48px; border-bottom: 1px solid var(--line-dark); }
+  @media (min-width: 900px) { .ftr__top { grid-template-columns: 1fr auto; align-items: end; } }
+  .ftr__title { font-family: var(--font-display); font-stretch: 116%; font-weight: 500; font-size: var(--fs-h2); line-height: 1.04; max-width: 14ch; color: var(--text-on-dark); }
+  .ftr__cols { display: grid; gap: 32px; padding-block: 48px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); font-size: 0.92rem; }
+  .ftr__cols ul { display: grid; gap: 8px; }
+  .ftr__h { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-on-dark); margin-bottom: 14px; }
+  .ftr__zones { color: var(--muted-on-dark); }
+  .ftr__villes { margin-top: 12px; }
+  .ftr__bottom { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; padding-top: 28px; border-top: 1px solid var(--line-dark); font-size: 0.82rem; }
+  .ftr__logo { color: var(--text-on-dark) !important; }
+  .ftr__legal { display: flex; flex-wrap: wrap; gap: 8px 22px; color: var(--muted-on-dark); }
+</style>

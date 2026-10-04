@@ -1,0 +1,23 @@
+---
+/* Bandeau photo pleine largeur avec une phrase : la respiration humaine entre deux sections. */
+import Visual from './Visual.astro';
+import type { Photo } from '../data/photos';
+interface Props { photo: Photo; title: string; text?: string; align?: 'left' | 'right' }
+const { photo, title, text, align = 'left' } = Astro.props;
+---
+<section class:list={['band', `band--${align}`]}>
+  <Visual src={photo.src} alt={photo.alt} position={photo.position} fill sizes="100vw" />
+  <div class="band__shade" aria-hidden="true"></div>
+  <div class="container band__in">
+    <p class="band__title">{title}</p>
+    {text && <p class="band__text">{text}</p>}
+  </div>
+</section>
+<style>
+  .band { position: relative; min-height: clamp(380px, 60vw, 620px); display: flex; align-items: flex-end; overflow: hidden; color: #fff; background: var(--basalte); }
+  .band__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 21, 19, 0) 30%, rgba(20, 21, 19, 0.75) 100%); }
+  .band__in { position: relative; z-index: 1; padding-block: clamp(32px, 6vw, 72px); display: grid; gap: 12px; }
+  .band--right .band__in { justify-items: end; text-align: right; }
+  .band__title { font-family: var(--font-display); font-stretch: 116%; font-weight: 500; font-size: var(--fs-h2); line-height: 1.05; max-width: 16ch; text-wrap: balance; }
+  .band__text { max-width: 46ch; color: rgba(255, 255, 255, 0.88); font-size: var(--fs-lead); }
+</style>

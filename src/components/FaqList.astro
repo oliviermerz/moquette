@@ -1,0 +1,25 @@
+---
+import type { Faq } from '../data/usages';
+interface Props { items: Faq[] }
+const { items } = Astro.props;
+---
+<div class="faq">
+  {items.map((f) => (
+    <details class="faq__item">
+      <summary><h3 class="faq__q">{f.q}</h3><span class="faq__icon" aria-hidden="true"></span></summary>
+      <p class="faq__a muted">{f.a}</p>
+    </details>
+  ))}
+</div>
+<style>
+  .faq { border-top: 1px solid var(--line); }
+  .faq__item { border-bottom: 1px solid var(--line); }
+  .faq__item summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 20px; align-items: center; padding-block: 22px; min-height: 48px; }
+  .faq__item summary::-webkit-details-marker { display: none; }
+  .faq__q { font-family: var(--font-body); font-stretch: normal; font-weight: 500; font-size: 1.05rem; line-height: 1.4; letter-spacing: 0; }
+  .faq__icon { position: relative; width: 14px; height: 14px; flex: none; }
+  .faq__icon::before, .faq__icon::after { content: ''; position: absolute; left: 0; top: 6px; width: 14px; height: 1.5px; background: var(--ocre); transition: transform .2s; }
+  .faq__icon::after { transform: rotate(90deg); }
+  .faq__item[open] .faq__icon::after { transform: rotate(0); }
+  .faq__a { padding-bottom: 24px; max-width: 70ch; }
+</style>

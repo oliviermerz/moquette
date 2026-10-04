@@ -1,0 +1,76 @@
+---
+/* Hub régional : /zones/hauts-de-france/. Ajouter une région = des fichiers villes avec `region: <slug>` + une entrée ici. */
+import Base from '../../layouts/Base.astro';
+import CaseCard from '../../components/CaseCard.astro';
+import { CtaFinal } from '../../components/sections';
+import { ESTIMATE_URL } from '../../config/site';
+import { REGIONS } from '../../data/regions';
+import Visual from '../../components/Visual.astro';
+import { photos } from '../../data/photos';
+import { getVilleStatuses, getRealisations, villeUrl, type VilleStatus } from '../../lib/proof';
+
+export async function getStaticPaths() {
+  return Object.keys(REGIONS).map((region) => ({ params: { region } }));
+}
+
+const { region } = Astro.params as { region: string };
+const info = REGIONS[region];
+const villes: VilleStatus[] = (await getVilleStatuses()).filter((s) => s.ville.data.region === region);
+const villeIds = new Set(villes.map((s) => s.ville.id));
+const real = (await getRealisations()).filter((r) => r.data.zone && villeIds.has(r.data.zone.id)).slice(0, 6);
+---
+<Base
+  title={`Moquette de pierre en ${info.name}`}
+  description={`STRATE transforme vos extérieurs en pierre naturelle résinée en ${info.name} : terrasses, piscines, allées, entrées. Villes desservies et réalisations locales.`}
+  crumbs={[{ name: info.name, href: `/zones/${region}/` }]}
+>
+  <section class="section section--tight">
+    <div class="container grid-2">
+    <div class="stack" style="--stack: 22px">
+      <span class="kicker">Zone d'intervention</span>
+      <h1 class="h1">Moquette de pierre en {info.name}</h1>
+      <p class="lead muted">{info.intro}</p>
+      <div class="btn-row"><a class="btn btn--primary" href={ESTIMATE_URL} data-cta="estimer" data-placement="zone-hero">Estimer mon projet <span class="arrow" aria-hidden="true">→</span></a></div>
+    </div>
+    <Visual src={photos.lilleRueBrique.src} alt={photos.lilleRueBrique.alt} ratio="4 / 5" priority sizes="(min-width: 900px) 45vw, 100vw" />
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head"><span class="kicker">Villes</span><h2 class="h2">Où nous intervenons.</h2></div>
+      <ul class="villes" role="list">
+        {villes.map((s) => (
+          <li>
+            {s.indexable
+              ? <a href={villeUrl(s.ville)}><b>{s.ville.data.name}</b><span class="muted">{s.realisations.length} réalisation{s.realisations.length > 1 ? 's' : ''}</span></a>
+              : <span><b>{s.ville.data.name}</b><span class="muted">{s.ville.data.departement}</span></span>}
+          </li>
+        ))}
+      </ul>
+      <p class="muted note">Votre commune n'apparaît pas ? Saisissez votre code postal dans l'estimation en ligne : nous vous répondons même si vous êtes en dehors de ces villes.</p>
+    </div>
+  </section>
+
+  {real.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <div class="section-head"><span class="kicker">Réalisations</span><h2 class="h2">Nos derniers chantiers en {info.name}.</h2></div>
+        <div class="cases">{real.map((r) => <CaseCard r={r} />)}</div>
+      </div>
+    </section>
+  )}
+
+  <CtaFinal />
+</Base>
+<style>
+  .villes { display: grid; gap: 1px; background: var(--line); border-block: 1px solid var(--line); grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+  .villes li { background: var(--chaux-2); }
+  .villes a, .villes li > span { display: grid; gap: 2px; padding: 18px 16px; text-decoration: none; }
+  .villes a:hover { background: var(--blanc); }
+  .villes a b { color: var(--ocre); }
+  .villes b { font-family: var(--font-display); font-stretch: 112%; font-weight: 500; font-size: 1.1rem; }
+  .note { margin-top: 20px; }
+  .cases { display: grid; gap: 24px; }
+  @media (min-width: 800px) { .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>
